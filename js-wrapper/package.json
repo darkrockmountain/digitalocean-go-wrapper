@@ -1,0 +1,17 @@
+{
+  "name": "do-js-wrapper",
+  "version": "1.0.0",
+  "main": "do-js-wrapper.js",
+  "type": "module",
+  "keywords": [],
+  "author": "DarkRockMountain",
+  "license": "MIT",
+  "description": "A Node.js wrapper for a DigitalOcean function in Go, overcoming Go limitations on DigitalOcean by building binaries locally with the latest version.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darkrockmountain/digitalocean-go-wrapper.git"
+  },
+  "dependencies": {
+    "child_process": "^1.0.2"
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "name": "digitalocean-go-wrapper",
+  "version": "0.1.0",
+  "description": "A Node.js package that wraps a DigitalOcean function in Go, overcoming Go limitations on DigitalOcean by building binaries locally with the latest version.",
+  "main": "index.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node index.mjs",
+    "test": "mocha",
+    "coverage": "c8 --report-dir=./coverage mocha",
+    "lcov": "c8 --report-dir=./coverage --reporter=lcov mocha",
+    "coverage_html": "c8 --reporter=html mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/darkrockmountain/digitalocean-go-wrapper.git"
+  },
+  "keywords": [
+    "digitalocean",
+    "wrapper",
+    "golang",
+    "nodejs",
+    "serverless",
+    "function"
+  ],
+  "author": "DarkRockMountain",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/darkrockmountain/digitalocean-go-wrapper/issues"
+  },
+  "homepage": "https://github.com/darkrockmountain/digitalocean-go-wrapper#readme",
+  "dependencies": {
+    "fs-extra": "^11.2.0",
+    "js-yaml": "^4.1.0",
+    "minimist": "^1.2.8",
+    "shelljs": "^0.8.5"
+  },
+  "devDependencies": {
+    "c8": "^10.1.2",
+    "chai": "^5.1.1",
+    "esmock": "^2.6.5",
+    "mocha": "^10.4.0",
+    "sinon": "^18.0.0"
+  },
+  "bin": {
+    "dogo-wrap": "./index.mjs"
+  }
+}

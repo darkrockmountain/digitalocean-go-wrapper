@@ -1,0 +1,40 @@
+# Exclude version control directories and files
+.git
+.gitignore
+.DS_Store
+
+# Exclude test files and directories
+test/
+coverage/
+
+# Exclude local development artifacts
+node_modules/
+package-lock.json
+
+# Exclude documentation and other project files
+README.md
+SECURITY.md
+CONTRIBUTING.md
+CODE_OF_CONDUCT.md
+AUTHORS
+LICENSE
+
+# Exclude assets and coverage reports
+assets/
+coverage/
+
+# Exclude GitHub workflows and templates
+.github/
+
+# Exclude local environment files
+.env
+
+# Exclude any logs
+*.log
+
+# Exclude build artifacts and temporary files
+*.tmp
+*.temp
+
+# Exclude OS-specific files
+Thumbs.db
