@@ -57,10 +57,19 @@ To wrap a Go function and convert it into a Node.js package, use the following c
 dogo-wrap --do_go_dir <path_to_go_project> --do_project_output <output_directory>
 ```
 
+For more options, use the `--help` command:
+```bash
+dogo-wrap --help
+```
+or
+```bash
+man dogo-wrap
+```
+
 ### Command Line Arguments
 
 - `--do_go_dir` or `-d`: Directory containing the Go files (default: `./`).
-- `--do_project_output` or `-out`: Output directory for the wrapped project (default: `./do_wrapped_function/`).
+- `--do_project_output`, `--out` or `-o`: Output directory for the wrapped project (default: `./do_wrapped_function/`).
 
 ## Commands
 
@@ -86,4 +95,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Links
 - [Contributing](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
+
+## Changelog
+
+See the [CHANGELOG.md](CHANGELOG.md) file for details on updates and changes.
 
