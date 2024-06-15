@@ -17,7 +17,7 @@ const files_to_keep = [];
 const now = 1717200000000;
 const tmpdir = "/mock/tmpdir";
 
-describe("doProjectConverter - main function", function () {
+describe("doProjectConverter - doProjectConverter function", function () {
   let sandbox;
   const argv = {
     do_go_dir: do_go_dir,
@@ -37,7 +37,7 @@ describe("doProjectConverter - main function", function () {
     sandbox.restore();
   });
 
-  it("should execute the main function correctly", async function () {
+  it("should execute the convertDoGoProject function correctly", async function () {
     // Set up test data and mocks
     const yamlData = {
       packages: [
@@ -92,10 +92,10 @@ describe("doProjectConverter - main function", function () {
       },
     };
 
-    const main = await esmock("../src/doProjectConverter.mjs", mocks);
+    const doProjectConverter = await esmock("../src/doProjectConverter.mjs", mocks);
 
-    // Call the main function
-    await main.default(
+    // Call the default function (convertDoGoProject)
+    await doProjectConverter.default(
       argv.do_go_dir,
       argv.do_project_output,
       argv.yaml_file,
@@ -278,7 +278,7 @@ describe("doProjectConverter - main function", function () {
     expect(mocks["../src/utils/fileUtils.mjs"].copy.called).to.be.true;
   });
 
-  it("should handle edge cases in main function", async function () {
+  it("should handle edge cases in convertDoGoProject function", async function () {
     // Set up test data and mocks
     const yamlData = {
       packages: [
@@ -333,10 +333,10 @@ describe("doProjectConverter - main function", function () {
       },
     };
 
-    const main = await esmock("../src/doProjectConverter.mjs", mocks);
+    const doProjectConverter = await esmock("../src/doProjectConverter.mjs", mocks);
 
-    // Call the main function
-    await main.default(
+    // Call the default function (convertDoGoProject)
+    await doProjectConverter.default(
       argv.do_go_dir,
       argv.do_project_output,
       argv.yaml_file,
