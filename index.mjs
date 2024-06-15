@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Import required modules
-import main, { DEFAULT_YAML_FILE, DEFAULT_GO_BUILT_NAME, DEFAULT_DO_WRAPPER_OUTPUT, DEFAULT_KEEP_WRAPPER, DEFAULT_FILES_TO_KEEP } from "./src/doProjectConverter.mjs";
+import convertDoGoProject, { DEFAULT_YAML_FILE, DEFAULT_GO_BUILT_NAME, DEFAULT_DO_WRAPPER_OUTPUT, DEFAULT_KEEP_WRAPPER, DEFAULT_FILES_TO_KEEP } from "./src/doProjectConverter.mjs";
 import minimist from "minimist";
 
 // Constants
@@ -36,7 +36,7 @@ const argv = minimist(process.argv.slice(2), {
  * @param {boolean} keepWrapper - Flag to keep the wrapper.
  * @param {string} doWrapperOutput - Output directory for the wrapper.
  */
-main(
+await convertDoGoProject(
   argv.do_go_dir,
   argv.do_project_output,
   argv.yaml_file,

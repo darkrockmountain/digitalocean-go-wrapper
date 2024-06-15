@@ -88,7 +88,7 @@ describe("doProjectConverter - main function", function () {
         generateWrapper: sandbox.stub().returns(true),
       },
       "../src/goBuilder.mjs": {
-        buildGoProject: sandbox.stub().returns("compiled_wrapper_path"),
+        buildGoProject: sandbox.stub().resolves("compiled_wrapper_path"),
       },
     };
 
@@ -329,7 +329,7 @@ describe("doProjectConverter - main function", function () {
         generateWrapper: sandbox.stub().returns(true),
       },
       "../src/goBuilder.mjs": {
-        buildGoProject: sandbox.stub().returns("compiled_wrapper_path"),
+        buildGoProject: sandbox.stub().resolves("compiled_wrapper_path"),
       },
     };
 
