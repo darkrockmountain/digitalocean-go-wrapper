@@ -34,8 +34,8 @@ Options:
   --do_project_output Output directory for the wrapped project (default: ${DEFAULT_DO_PROJECT_OUTPUT})
   --go_built_name     Name of the built Go binary (default: ${DEFAULT_GO_BUILT_NAME})
   --files_to_keep     Array of files to keep in each of the function folders (default: ${DEFAULT_FILES_TO_KEEP})
-  --keep_wrapper      Flag to keep the wrapper in go. If true it will delete this intermediate step (default: ${DEFAULT_KEEP_WRAPPER})
-  --do_wrapper_output Output directory for the go wrapper code (default: ${DEFAULT_DO_WRAPPER_OUTPUT})
+  --keep_wrapper      Flag to keep the wrapper in Go. If false, it will delete this intermediate step (default: ${DEFAULT_KEEP_WRAPPER})
+  --do_wrapper_output Output directory for the Go wrapper code (default: ${DEFAULT_DO_WRAPPER_OUTPUT})
   -v, --version       Show the version number
 
 Examples:

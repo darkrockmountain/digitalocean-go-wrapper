@@ -51,5 +51,8 @@
     "node": ">=14.0.0",
     "npm": ">=6.0.0"
   },
-  "preferGlobal": true
+  "preferGlobal": true,
+  "man": [
+    "./man/dogo-wrap.1"
+  ]
 }
