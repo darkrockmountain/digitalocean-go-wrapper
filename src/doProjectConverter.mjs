@@ -169,7 +169,7 @@ function convertIntoNodeJSPackage(
  * @param {boolean} keep_wrapper - Flag to keep the wrapper directory.
  * @param {string} do_wrapper_output - The directory for the compiled wrapper output.
  */
-function main(
+async function convertDoGoProject(
   do_go_dir,
   do_project_output,
   yaml_file = DEFAULT_YAML_FILE,
@@ -187,7 +187,8 @@ function main(
 
     let yamlData = getYamlData(do_go_dir);
 
-    getDoGoFunction(yamlData).forEach((func) => {
+
+    for (const func of getDoGoFunction(yamlData)) {
       const do_go_wrapper_path = path.join(
         tempDir,
         do_wrapper_output,
@@ -196,7 +197,9 @@ function main(
       copy(path.join(tempDir, func.goFunctionPath), do_go_wrapper_path);
       generateWrapper(do_go_wrapper_path, func.goMainFunctionName);
 
-      const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
+      // const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
+
+      const compiledWrapper = await buildGoProject(do_go_wrapper_path, go_built_name)
 
       yamlData = convertIntoNodeJSPackage(
         yamlData,
@@ -205,7 +208,7 @@ function main(
         compiledWrapper,
         go_built_name
       );
-    });
+    };
 
     if (!keep_wrapper) {
       remove(path.join(tempDir, do_wrapper_output));
@@ -219,7 +222,7 @@ function main(
   }
 }
 
-export default main;
+export default  convertDoGoProject;
 
 export {
   updatePackageJson,

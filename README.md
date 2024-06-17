@@ -11,8 +11,8 @@
 ![Build Status](https://github.com/DarkRockMountain/digitalocean-go-wrapper/actions/workflows/ci.yml/badge.svg)
 [![codecov](https://codecov.io/gh/DarkRockMountain/digitalocean-go-wrapper/graph/badge.svg?token=4S8BIA29OB)](https://codecov.io/gh/DarkRockMountain/digitalocean-go-wrapper)
 ![License](https://img.shields.io/github/license/DarkRockMountain/digitalocean-go-wrapper)
-![node Version](https://img.shields.io/node/v/digitalocean-go-wrapper)
-![npm version](https://img.shields.io/npm/v/digitalocean-go-wrapper)
+![node Version](https://img.shields.io/node/v/digitalocean-go-wrapper?kill_cache=1)
+![npm version](https://img.shields.io/npm/v/digitalocean-go-wrapper?kill_cache=1)
 [![GitHub Release](https://img.shields.io/github/v/release/darkrockmountain/digitalocean-go-wrapper)](https://github.com/darkrockmountain/digitalocean-go-wrapper/releases)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/DarkRockMountain/digitalocean-go-wrapper/badge)](https://scorecard.dev/viewer/?uri=github.com/DarkRockMountain/digitalocean-go-wrapper)
 [![Go Report Card](https://goreportcard.com/badge/github.com/darkrockmountain/digitalocean-go-wrapper?branch=master&kill_cache=1)](https://goreportcard.com/report/github.com/darkrockmountain/digitalocean-go-wrapper)
@@ -57,10 +57,19 @@ To wrap a Go function and convert it into a Node.js package, use the following c
 dogo-wrap --do_go_dir <path_to_go_project> --do_project_output <output_directory>
 ```
 
+For more options, use the `--help` command:
+```bash
+dogo-wrap --help
+```
+or
+```bash
+man dogo-wrap
+```
+
 ### Command Line Arguments
 
 - `--do_go_dir` or `-d`: Directory containing the Go files (default: `./`).
-- `--do_project_output` or `-out`: Output directory for the wrapped project (default: `./do_wrapped_function/`).
+- `--do_project_output`, `--out` or `-o`: Output directory for the wrapped project (default: `./do_wrapped_function/`).
 
 ## Commands
 
@@ -86,4 +95,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Links
 - [Contributing](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
+
+## Changelog
+
+See the [CHANGELOG.md](CHANGELOG.md) file for details on updates and changes.
 
