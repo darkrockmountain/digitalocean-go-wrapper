@@ -3,6 +3,7 @@ import sinon from "sinon";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
+import os from "os";
 import {
   readUTF8File,
   writeUTF8File,
@@ -87,33 +88,65 @@ describe("File Utils test", function () {
     });
   });
 
-  describe("removeFolderContent", function () {
-    it("should remove all content of a folder", function () {
-      const folderPath = "testFolder/";
-      const files = ["file1.txt", "file2.txt"];
-      const subFolder = "subFolder/";
-      sandbox.stub(fs, "readdirSync").callsFake((fullPath) => {
-        if (fullPath.includes(subFolder)){
-          return files
+  describe('removeFolderContent', () => {
+    let testDir;
+  
+    beforeEach(() => {
+      // Create a temporary directory for testing
+      testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'testDir-'));
+  
+      // Create some files and directories inside the test directory
+      fs.writeFileSync(path.join(testDir, 'file1.txt'), 'content1');
+      fs.writeFileSync(path.join(testDir, 'file2.txt'), 'content2');
+      fs.mkdirSync(path.join(testDir, 'subdir'));
+      fs.writeFileSync(path.join(testDir, 'subdir', 'file3.txt'), 'content3');
+    });
+  
+    afterEach(() => {
+      // Remove the test directory after each test
+      fs.rmSync(testDir, { recursive: true, force: true });
+    });
+  
+    it('should remove all files and directories except the specified ones', () => {
+      const keepFiles = ['file1.txt', 'subdir'];
+  
+      removeFolderContent(testDir, keepFiles);
+  
+      // Check that file1.txt and subdir still exist
+      expect(fs.existsSync(path.join(testDir, 'file1.txt'))).to.be.true;
+      expect(fs.existsSync(path.join(testDir, 'subdir'))).to.be.true;
+  
+      // Check that file2.txt and subdir/file3.txt have been removed
+      expect(fs.existsSync(path.join(testDir, 'file2.txt'))).to.be.false;
+    });
+  
+    it('should remove all files and directories if keepFiles is empty', () => {
+      removeFolderContent(testDir);
+  
+      // Check that the directory is empty
+      const remainingFiles = fs.readdirSync(testDir);
+      expect(remainingFiles).to.be.empty;
+    });
+  
+    it('should not fail if the folder is already empty', () => {
+      // Clear the test directory manually
+      fs.readdirSync(testDir).forEach((file) => {
+        const fullPath = path.join(testDir, file);
+        if (fs.lstatSync(fullPath).isDirectory()) {
+          fs.rmdirSync(fullPath, { recursive: true });
+        } else {
+          fs.unlinkSync(fullPath);
         }
-        return [...files, subFolder];
       });
-       
-      sandbox.stub(fs, "lstatSync").callsFake((fullPath) => {
-        if (fullPath.endsWith("/")) {
-          return { isDirectory: () => true };
-        }
-        return { isDirectory: () => false };
-      });
-      const unlinkSyncStub = sandbox.stub(fs, "unlinkSync");
-      const rmdirSyncStub = sandbox.stub(fs, "rmdirSync");
-
-      removeFolderContent(folderPath);
-
-      expect(unlinkSyncStub.callCount).to.equal(4); //one for each file, one for subFolder/ and one for testFolder/
-      expect(rmdirSyncStub.calledWith(path.join(folderPath, subFolder))).to.be.true;
+  
+      removeFolderContent(testDir);
+  
+      // Check that the directory is still empty
+      const remainingFiles = fs.readdirSync(testDir);
+      expect(remainingFiles).to.be.empty;
     });
   });
+
 
   describe("copy", function () {
     it("should copy contents from source to destination", function () {
