@@ -11,6 +11,8 @@ import (
 	"strconv"
 )
 
+const errorOutputSeparator = "ERR: "
+
 // Define the ContextParameter struct
 type ContextParameter struct {
 	ActivationID    string `json:"activation_id"`
@@ -183,8 +185,10 @@ func main() {
 
 	result, err := mainFunctionWrapper(ctx, event)
 
-	if err != nil {
-		log.Fatal(result)
+	if err != nil { //the error returned by mainFunctionWrapper is an output error otherwise the log.Fatal has been triggered.
+		result = errorOutputSeparator + result
+	} else {
+
 	}
 
 	fmt.Println(result)

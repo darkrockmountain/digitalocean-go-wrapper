@@ -3,6 +3,8 @@ import { promisify } from "util";
 
 const execFileAsync = promisify(execFile);
 
+const errorOutputSeparator = "ERR: "
+
 export async function main(event, context) {
   try {
     console.log('Function invoked');
@@ -13,20 +15,13 @@ export async function main(event, context) {
     const { stdout, stderr } = await execFileAsync(`./compiled_function`, [JSON.stringify(context), JSON.stringify(event)]);
 
     if (stderr) {
-      console.log(`Standard Error: ${stderr}`);
-      return {
-        body: `Error: ${stderr}`,
-        statusCode: 500,
-        headers: {
-          "Content-Type": "text/plain",
-        },
-      };
+      console.log(stderr);
     }
 
-    console.log(`Standard Output: ${stdout}`);
+    console.log(`Output: ${stdout}`);
     return {
       body: `${stdout}`,
-      statusCode: 200,
+      statusCode: stdout.startsWith(errorOutputSeparator) ? 500 :200,
       headers: {
         "Content-Type": "application/json",
       },
@@ -34,7 +29,7 @@ export async function main(event, context) {
   } catch (error) {
     console.error('Execution failed:', error);
     return {
-      body: `Execution failed: ${error.message}`,
+      body: `Execution failed`,
       statusCode: 500,
       headers: {
         "Content-Type": "text/plain",
