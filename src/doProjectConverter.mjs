@@ -122,7 +122,9 @@ function copyDoPackages(do_go_dir, tempDir, filesToKeep) {
   );
   if (filesToKeep && filesToKeep.length > 0) {
     filesToKeep.forEach((fileName) => {
-      copy(path.join(do_go_dir, fileName), path.join(tempDir, fileName));
+      try { 
+        copy(path.join(do_go_dir, fileName), path.join(tempDir, fileName));
+      } catch (e) {}
     });
   }
 }
@@ -187,7 +189,6 @@ async function convertDoGoProject(
 
     let yamlData = getYamlData(do_go_dir);
 
-
     for (const func of getDoGoFunction(yamlData)) {
       const do_go_wrapper_path = path.join(
         tempDir,
@@ -199,7 +200,10 @@ async function convertDoGoProject(
 
       // const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
 
-      const compiledWrapper = await buildGoProject(do_go_wrapper_path, go_built_name)
+      const compiledWrapper = await buildGoProject(
+        do_go_wrapper_path,
+        go_built_name
+      );
 
       yamlData = convertIntoNodeJSPackage(
         yamlData,
@@ -208,7 +212,7 @@ async function convertDoGoProject(
         compiledWrapper,
         go_built_name
       );
-    };
+    }
 
     if (!keep_wrapper) {
       remove(path.join(tempDir, do_wrapper_output));
@@ -222,7 +226,7 @@ async function convertDoGoProject(
   }
 }
 
-export default  convertDoGoProject;
+export default convertDoGoProject;
 
 export {
   updatePackageJson,
