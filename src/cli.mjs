@@ -1,21 +1,24 @@
 // Import required modules
-import convertDoGoProject, { DEFAULT_YAML_FILE, DEFAULT_GO_BUILT_NAME, DEFAULT_DO_WRAPPER_OUTPUT, DEFAULT_KEEP_WRAPPER, DEFAULT_FILES_TO_KEEP } from "./doProjectConverter.mjs";
+import convertDoGoProject, { 
+  DEFAULT_YAML_FILE, 
+  DEFAULT_GO_BUILT_NAME, 
+  DEFAULT_DO_WRAPPER_OUTPUT, 
+  DEFAULT_KEEP_WRAPPER, 
+  DEFAULT_FILES_TO_KEEP 
+} from "./doProjectConverter.mjs";
 import minimist from "minimist";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 
-
 // Constants
 const DEFAULT_DO_GO_DIR = "./";
 const DEFAULT_DO_PROJECT_OUTPUT = "./do_wrapped_function/";
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const packageJsonPath = path.resolve(__dirname, '../package.json');
-
 
 // Function to print help message
 function printHelp() {
@@ -45,6 +48,26 @@ Examples:
   console.log(helpMessage);
 }
 
+// Function to cast arguments to the correct types
+function castArgs(args) {
+  if (typeof args.files_to_keep === 'string') {
+    try {
+      args.files_to_keep = JSON.parse(args.files_to_keep);
+      if (!Array.isArray(args.files_to_keep)) {
+        throw new Error('files_to_keep should be an array');
+      }
+    } catch (error) {
+      console.error('Invalid format for files_to_keep, it should be a JSON array');
+      process.exit(1);
+    }
+  }
+
+  // `keep_wrapper` is a flag, check its presence
+  args.keep_wrapper = args.keep_wrapper || false;
+
+  return args;
+}
+
 // Function to parse arguments and run the CLI
 export async function runCLI(argv) {
   const args = minimist(argv, {
@@ -65,6 +88,7 @@ export async function runCLI(argv) {
       files_to_keep: DEFAULT_FILES_TO_KEEP,
       keep_wrapper: DEFAULT_KEEP_WRAPPER,
     },
+    boolean: ['keep_wrapper'],  // Treat `keep_wrapper` as a boolean flag
   });
 
   if (args.help) {
@@ -78,13 +102,16 @@ export async function runCLI(argv) {
     return;
   }
 
+  // Cast arguments to correct types
+  const castedArgs = castArgs(args);
+
   await convertDoGoProject(
-    args.do_go_dir,
-    args.do_project_output,
-    args.yaml_file,
-    args.go_built_name,
-    args.files_to_keep,
-    args.keep_wrapper,
-    args.do_wrapper_output
+    castedArgs.do_go_dir,
+    castedArgs.do_project_output,
+    castedArgs.yaml_file,
+    castedArgs.go_built_name,
+    castedArgs.files_to_keep,
+    castedArgs.keep_wrapper,
+    castedArgs.do_wrapper_output
   );
 }
