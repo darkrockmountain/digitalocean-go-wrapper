@@ -41,27 +41,42 @@ export function writeJsonFile(filePath, data) {
 }
 
 /**
- * Removes the content of a folder, except for specified files.
+ * Removes the content of a folder, except for specified files and directories.
  * @param {string} folderPath - The path of the folder to clear.
  * @param {string[]} keepFiles - An array of file names to keep in the folder.
  */
 export function removeFolderContent(folderPath, keepFiles = []) {
   const files = fs.readdirSync(folderPath);
+
+  const normalizedKeepFiles = keepFiles.map((keepFile) => path.normalize(keepFile));
+
+
   for (const file of files) {
-    if (keepFiles.includes(file)) {
-      continue; // Skip files and directories that are in the keepFiles array
-    }
     const fullPath = path.join(folderPath, file);
+    const relativePath = path.relative(folderPath, fullPath);
+    const shouldKeep = normalizedKeepFiles.some((keepFile) => {
+      return fullPath.includes(keepFile) || relativePath === keepFile;
+    });
+
+    if (shouldKeep) {
+      continue;
+    }
+
     if (fs.lstatSync(fullPath).isDirectory()) {
       removeFolderContent(fullPath, keepFiles);
       try {
         fs.rmdirSync(fullPath);
-      } catch (e) {}
+      } catch (e) {
+      }
     } else {
-      fs.unlinkSync(fullPath);
+      try {
+        fs.unlinkSync(fullPath);
+      } catch (e) {
+      }
     }
   }
 }
+
 
 /**
  * Copies the contents of a source to a destination.
