@@ -110,7 +110,7 @@ describe("File Utils test", function () {
     });
 
     it('should remove all files and directories except the specified ones', () => {
-      const keepFiles = ['file1.txt', 'subdir'];
+      const keepFiles = ['file1.txt', 'subdir/'];
 
       removeFolderContent(testDir, keepFiles);
 

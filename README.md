@@ -54,7 +54,7 @@ npm install -g digitalocean-go-wrapper
 To wrap a Go function and convert it into a Node.js package, use the following command:
 
 ```bash
-dogo-wrap --do_go_dir <path_to_go_project> --do_project_output <output_directory>
+dogo-wrap --do_go_dir <path_to_go_project> --do_project_output <output_directory> --files_to_keep '["file1.txt", "directory1/", "directory2/file_inside.txt"]'
 ```
 
 For more options, use the `--help` command:
@@ -70,6 +70,7 @@ man dogo-wrap
 
 - `--do_go_dir` or `-d`: Directory containing the Go files (default: `./`).
 - `--do_project_output`, `--out` or `-o`: Output directory for the wrapped project (default: `./do_wrapped_function/`).
+- `--files_to_keep`, `--ftk`: Array of files to keep in each of the function folders (default:` [".env"]`).
 
 ## Commands
 
