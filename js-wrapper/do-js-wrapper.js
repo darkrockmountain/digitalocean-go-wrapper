@@ -7,8 +7,8 @@ export async function main(event, context) {
   try {
     console.log("Function invoked");
     console.log(`Working directory: ${process.cwd()}`);
-    console.log("Event:", JSON.stringify(event));
     console.log("Context:", JSON.stringify(context));
+    console.log("Event:", JSON.stringify(event));
 
     const { stdout, stderr } = await execFileAsync(`./compiled_function`, [
       JSON.stringify(context),
@@ -16,7 +16,7 @@ export async function main(event, context) {
     ]);
 
     if (stderr) {
-      console.log(stderr);
+      console.log(`Output (returning error): ${stderr}`);
       return {
         body: `${stderr}`,
         statusCode: 500,
@@ -35,7 +35,7 @@ export async function main(event, context) {
       },
     };
   } catch (error) {
-    console.error("Execution failed:", error);
+    console.error("Execution failed:", error.message); // Standard Error attribute
     return {
       body: `Execution failed`,
       statusCode: 500,
