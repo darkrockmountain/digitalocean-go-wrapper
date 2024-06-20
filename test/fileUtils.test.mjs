@@ -136,7 +136,7 @@ describe("File Utils test", function () {
       fs.readdirSync(testDir).forEach((file) => {
         const fullPath = path.join(testDir, file);
         if (fs.lstatSync(fullPath).isDirectory()) {
-          fs.rmdirSync(fullPath, { recursive: true });
+          fs.rmSync(fullPath, { recursive: true });
         } else {
           fs.unlinkSync(fullPath);
         }
