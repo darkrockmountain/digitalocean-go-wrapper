@@ -68,7 +68,7 @@ describe("do-js-wrapper main", () => {
   it("should return 500 status code when stdout starts with error output separator", async () => {
     execFileAsyncMock.resolves({
       stdout: "",
-      stderr: "ERR: Some error occurred",
+      stderr: "Some error occurred",
     });
 
     const event = { key: "value" };
@@ -77,7 +77,7 @@ describe("do-js-wrapper main", () => {
     const result = await main(event, context);
 
     chai.expect(result).to.deep.equal({
-      body: "ERR: Some error occurred",
+      body: "Some error occurred",
       statusCode: 500,
       headers: {
         "Content-Type": "text/plain",
@@ -86,9 +86,10 @@ describe("do-js-wrapper main", () => {
   });
 
   it("should log stderr output if present", async () => {
+    const errorOutput = "Some error in stderr"
     execFileAsyncMock.resolves({
       stdout: "Success output",
-      stderr: "Some error in stderr",
+      stderr: errorOutput,
     });
 
     const event = { key: "value" };
@@ -97,13 +98,13 @@ describe("do-js-wrapper main", () => {
     const result = await main(event, context);
 
     chai.expect(result).to.deep.equal({
-      body: "Some error in stderr",
+      body: errorOutput,
       statusCode: 500,
       headers: {
         "Content-Type": "text/plain",
       },
-    });
-    chai.expect(consoleLogSpy.calledWith("Some error in stderr")).to.be.true;
+    }); 
+    chai.expect(consoleLogSpy.calledWith(`Output (returning error): ${errorOutput}`)).to.be.true;
   });
 
   it("should handle execution failure and return 500 status code", async () => {
@@ -123,7 +124,7 @@ describe("do-js-wrapper main", () => {
       },
     });
     chai.expect(consoleErrorSpy.called).to.be.true;
-    chai.expect(consoleErrorSpy.calledWith("Execution failed:", executionError))
+    chai.expect(consoleErrorSpy.calledWith("Execution failed:", executionError.message))
       .to.be.true;
   });
 

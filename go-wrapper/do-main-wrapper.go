@@ -5,21 +5,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
 
-const errorOutputSeparator = "ERR: "
-const logOutput = "->\n- %v\n"
+const logOutput = "- "
 
 type htmlErrorResponse struct {
 	body string
 }
 
 func (t *htmlErrorResponse) Error() string {
-	return errorOutputSeparator + t.body
+	return t.body
 }
 
 // Define the ContextParameter struct
@@ -194,14 +192,16 @@ func runMain(ctxStr, eventStr string) (string, error) {
 
 func main() {
 	if len(os.Args) < 3 {
-		log.Fatalln(logOutput + "Not enough arguments provided")
+		fmt.Fprintln(os.Stderr, "Not enough arguments provided")
+		os.Exit(1)
 	}
 	result, err := runMain(os.Args[1], os.Args[2])
 	if err != nil {
 		if _, ok := err.(*htmlErrorResponse); ok {
 			fmt.Fprintln(os.Stderr, err.Error())
 		} else {
-			log.Fatalln(logOutput + err.Error())
+			fmt.Fprintln(os.Stderr, logOutput+err.Error())
+			os.Exit(1)
 		}
 	} else {
 		fmt.Fprintln(os.Stdout, result)
