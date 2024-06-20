@@ -8,9 +8,9 @@ import os from "os";
 // Define necessary paths and constants
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const do_go_dir = path.join(__dirname, "./data/digitalocean_functions");
+const do_go_dir = "path/to/digitalocean/functions";
 const yaml_file = "project.yml";
-const do_project_output = path.join(__dirname, "./data/out");
+const do_project_output = path.join(__dirname, "path/to/digitalocean/functions/out");
 const do_wrapper_output = "do_go_lang_compiled_wrapper";
 const go_built_name = "compiled_function";
 const files_to_keep = [];
