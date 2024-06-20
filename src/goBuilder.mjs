@@ -52,7 +52,7 @@ async function buildGoProject(goProjectPath, builtName) {
     await execCommand(GO_MOD_TIDY_COMMAND);
 
     // Build the Go project
-    const buildCommand = `GOOS=${doEnvGOOS} GOARCH=${doEnvGOARCH} CGO_ENABLED=${doEnvCGO_ENABLED} ${GO_BUILD_COMMAND} ${builtName}`;
+    const buildCommand = `${process.env.NODE_ENV === 'test' ? '': `GOOS=${doEnvGOOS} GOARCH=${doEnvGOARCH}`} CGO_ENABLED=${doEnvCGO_ENABLED} ${GO_BUILD_COMMAND} ${builtName}`;
     await execCommand(buildCommand);
     
 

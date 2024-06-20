@@ -6,10 +6,10 @@
   "type": "module",
   "scripts": {
     "start": "node index.mjs",
-    "test": "mocha",
-    "coverage": "c8 --report-dir=./coverage mocha",
-    "lcov": "c8 --report-dir=./coverage --reporter=lcov mocha",
-    "coverage_html": "c8 --reporter=html mocha"
+    "test": "NODE_ENV=test mocha './test/**/*.test.mjs'",
+    "coverage": "NODE_ENV=test c8 --report-dir=./coverage mocha './test/**/*.test.mjs' ",
+    "lcov": "NODE_ENV=test c8 --report-dir=./coverage --reporter=lcov mocha './test/**/*.test.mjs'",
+    "coverage_html": "NODE_ENV=test c8 --reporter=html mocha './test/**/*.test.mjs'"
   },
   "repository": {
     "type": "git",
