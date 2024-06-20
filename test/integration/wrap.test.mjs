@@ -27,7 +27,6 @@ const do_wrapper_compiled_exec = path.resolve(
 
 async function buildGoProject(folderName) {
   const do_func_path = path.resolve(__dirname, folderName);
-  console.log(`do_func_path ${do_func_path}`);
   await runCLI([
     "--do_go_dir",
     do_func_path,

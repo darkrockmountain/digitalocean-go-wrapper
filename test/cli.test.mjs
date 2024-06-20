@@ -13,7 +13,7 @@ describe('CLI', function () {
   let convertDoGoProjectStub;
 
   beforeEach(async () => {
-    convertDoGoProjectStub = sinon.stub().callsFake((...args)=>{console.log(`convertDoGoProjectStub args ${JSON.stringify(args)}`)}) 
+    convertDoGoProjectStub = sinon.stub() 
 
     // Use esmock to mock convertDoGoProject in the CLI logic
     runCLI = (await esmock('../src/cli.mjs', {
