@@ -12,6 +12,15 @@ import (
 )
 
 const errorOutputSeparator = "ERR: "
+const logOutput = "->\n- %v\n"
+
+type htmlErrorResponse struct {
+	body string
+}
+
+func (t *htmlErrorResponse) Error() string {
+	return errorOutputSeparator + t.body
+}
 
 // Define the ContextParameter struct
 type ContextParameter struct {
@@ -101,7 +110,6 @@ func handleResponse(result interface{}) (string, error) {
 	}
 
 	var jsonResponse string
-	var err error
 
 	switch v := result.(type) {
 	case []byte:
@@ -112,11 +120,11 @@ func handleResponse(result interface{}) (string, error) {
 
 		body, readErr := io.ReadAll(v.Body)
 		if readErr != nil {
-			log.Fatal(readErr)
+			return "", fmt.Errorf("\n- %v\n", readErr)
 		}
 		jsonResponse = string(body)
 		if !isSuccessStatusCode(v.StatusCode) {
-			err = fmt.Errorf("https status code %v", v.StatusCode)
+			return "", &htmlErrorResponse{jsonResponse}
 		}
 	default:
 		// cast to map as default
@@ -124,53 +132,51 @@ func handleResponse(result interface{}) (string, error) {
 		// Marshal the struct to JSON
 		jsonData, marshalErr := json.Marshal(v)
 		if marshalErr != nil {
-			return marshalErr.Error(), marshalErr
+			return "", marshalErr
 		}
 
 		// Unmarshal the JSON to a map[string]interface{}
 		var resultMap map[string]interface{}
 		unmarshalErr := json.Unmarshal(jsonData, &resultMap)
 		if unmarshalErr != nil {
-			return unmarshalErr.Error(), unmarshalErr
+			return "", unmarshalErr
 		}
 
-		if value, ok := resultMap["statusCode"]; ok {
-			statusCode, _ := toInt(value)
-			if !isSuccessStatusCode(statusCode) {
-				err = fmt.Errorf("https status code %v", statusCode)
-			}
-		}
 		if body, ok := resultMap["body"]; ok {
 			jsonResponse = toString(body)
 		} else {
 			//if resultMap has no body tag just return all the result map as the response body
 			jsonResponse = string(jsonData)
 		}
+
+		if value, ok := resultMap["statusCode"]; ok {
+			statusCode, _ := toInt(value)
+			if !isSuccessStatusCode(statusCode) {
+				return "", &htmlErrorResponse{jsonResponse}
+			}
+		}
 	}
 
-	return string(jsonResponse), err
+	return string(jsonResponse), nil
 }
 
 func mainFunctionWrapper(ctx context.Context, event any) (string, error) {
 	panic("mainFunctionWrapper not implemented")
 }
 
-func main() {
-	if len(os.Args) < 3 {
-		log.Fatal("Not enough arguments provided")
-	}
+func runMain(ctxStr, eventStr string) (string, error) {
 
-	event, err := unmarshalEvent[[]byte](os.Args[2])
+	event, err := unmarshalEvent[[]byte](eventStr)
 	if err != nil {
-		log.Fatal("Invalid event argument")
+		return "", fmt.Errorf("Invalid event argument: %w", err)
 	}
 
 	ctx := context.Background()
 
 	var contextParam ContextParameter
-	err = json.Unmarshal([]byte(os.Args[1]), &contextParam)
+	err = json.Unmarshal([]byte(ctxStr), &contextParam)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
 	// setting the context values
@@ -183,13 +189,21 @@ func main() {
 	ctx = context.WithValue(ctx, "namespace", contextParam.Namespace)
 	ctx = context.WithValue(ctx, "request_id", contextParam.RequestID)
 
-	result, err := mainFunctionWrapper(ctx, event)
+	return mainFunctionWrapper(ctx, event)
+}
 
-	if err != nil { //the error returned by mainFunctionWrapper is an output error otherwise the log.Fatal has been triggered.
-		result = errorOutputSeparator + result
-	} else {
-
+func main() {
+	if len(os.Args) < 3 {
+		log.Fatalln(logOutput + "Not enough arguments provided")
 	}
-
-	fmt.Println(result)
+	result, err := runMain(os.Args[1], os.Args[2])
+	if err != nil {
+		if _, ok := err.(*htmlErrorResponse); ok {
+			fmt.Fprintln(os.Stderr, err.Error())
+		} else {
+			log.Fatalln(logOutput + err.Error())
+		}
+	} else {
+		fmt.Fprintln(os.Stdout, result)
+	}
 }
