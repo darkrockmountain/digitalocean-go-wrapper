@@ -5,17 +5,20 @@ const execFileAsync = promisify(execFile);
 
 export async function main(event, context) {
   try {
-    console.log('Function invoked');
+    console.log("Function invoked");
     console.log(`Working directory: ${process.cwd()}`);
-    console.log('Event:', JSON.stringify(event));
-    console.log('Context:', JSON.stringify(context));
-    
-    const { stdout, stderr } = await execFileAsync(`./compiled_function`, [JSON.stringify(context), JSON.stringify(event)]);
+    console.log("Context:", JSON.stringify(context));
+    console.log("Event:", JSON.stringify(event));
+
+    const { stdout, stderr } = await execFileAsync(`./compiled_function`, [
+      JSON.stringify(context),
+      JSON.stringify(event),
+    ]);
 
     if (stderr) {
-      console.log(`Standard Error: ${stderr}`);
+      console.log(`Output (returning error): ${stderr}`);
       return {
-        body: `Error: ${stderr}`,
+        body: `${stderr}`,
         statusCode: 500,
         headers: {
           "Content-Type": "text/plain",
@@ -23,7 +26,7 @@ export async function main(event, context) {
       };
     }
 
-    console.log(`Standard Output: ${stdout}`);
+    console.log(`Output: ${stdout}`);
     return {
       body: `${stdout}`,
       statusCode: 200,
@@ -32,13 +35,13 @@ export async function main(event, context) {
       },
     };
   } catch (error) {
-    console.error('Execution failed:', error);
+    console.error("Execution failed:", error.message); // Standard Error attribute
     return {
-      body: `Execution failed: ${error.message}`,
+      body: `Execution failed`,
       statusCode: 500,
       headers: {
         "Content-Type": "text/plain",
       },
     };
   }
-};
+}

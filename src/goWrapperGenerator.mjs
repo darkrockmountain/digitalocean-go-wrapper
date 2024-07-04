@@ -3,7 +3,7 @@ import { listDirectoryContents, readUTF8File, writeUTF8File } from "./utils/file
 
 // Constants
 const MAIN_FUNCTION_SUBSTITUTION = 'panic("mainFunctionWrapper not implemented")';
-const EVENT_HANDLER_SUBSTITUTION = "unmarshalEvent[[]byte](os.Args[2])";
+const EVENT_HANDLER_SUBSTITUTION = "unmarshalEvent[[]byte](eventStr)";
 const GOLANG_WRAPPER_FILE_NAME = "do_go_wrapper.go";
 const GOLANG_WRAPPER_TEMPLATE_FILE_NAME = "do-main-wrapper.go";
 const GO_WRAPPER_TEMPLATE_FILE_PATH = path.join(

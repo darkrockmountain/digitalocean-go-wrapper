@@ -1,15 +1,16 @@
 {
   "name": "digitalocean-go-wrapper",
-  "version": "0.1.0",
+  "version": "0.2.0-beta.2.1",
   "description": "A Node.js package that wraps a DigitalOcean function in Go, overcoming Go limitations on DigitalOcean by building binaries locally with the latest version.",
   "main": "index.mjs",
   "type": "module",
   "scripts": {
     "start": "node index.mjs",
-    "test": "mocha",
-    "coverage": "c8 --report-dir=./coverage mocha",
-    "lcov": "c8 --report-dir=./coverage --reporter=lcov mocha",
-    "coverage_html": "c8 --reporter=html mocha"
+    "test": "NODE_ENV=test mocha --ignore './test/integration/*' './test/**/*.test.mjs'",
+    "coverage": "NODE_ENV=test c8 --report-dir=./coverage mocha --ignore './test/integration/*' './test/**/*.test.mjs'",
+    "lcov": "NODE_ENV=test c8 --report-dir=./coverage --reporter=lcov mocha --ignore './test/integration/*' './test/**/*.test.mjs'",
+    "coverage_html": "NODE_ENV=test c8 --reporter=html mocha --ignore './test/integration/*' './test/**/*.test.mjs'",
+    "full_tests": "NODE_ENV=test mocha './test/**/*.test.mjs'"
   },
   "repository": {
     "type": "git",
@@ -30,19 +31,28 @@
   },
   "homepage": "https://github.com/darkrockmountain/digitalocean-go-wrapper#readme",
   "dependencies": {
+    "child_process": "^1.0.2",
     "fs-extra": "^11.2.0",
     "js-yaml": "^4.1.0",
-    "minimist": "^1.2.8",
-    "shelljs": "^0.8.5"
+    "minimist": "^1.2.8"
   },
   "devDependencies": {
     "c8": "^10.1.2",
     "chai": "^5.1.1",
+    "chai-as-promised": "^8.0.0",
     "esmock": "^2.6.5",
     "mocha": "^10.4.0",
     "sinon": "^18.0.0"
   },
   "bin": {
-    "dogo-wrap": "./index.mjs"
-  }
+    "dogo-wrap": "index.mjs"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "preferGlobal": true,
+  "man": [
+    "./man/dogo-wrap.1"
+  ]
 }

@@ -5,13 +5,24 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"strconv"
 )
 
-// Define the ContextParameter struct
+const logOutput = "- "
+
+// htmlErrorResponse represents an error response in HTML format.
+type htmlErrorResponse struct {
+	body string
+}
+
+// Error implements the error interface for htmlErrorResponse.
+func (t *htmlErrorResponse) Error() string {
+	return t.body
+}
+
+// ContextParameter represents the structure for context parameters.
 type ContextParameter struct {
 	ActivationID    string `json:"activation_id"`
 	APIHost         string `json:"api_host"`
@@ -22,12 +33,12 @@ type ContextParameter struct {
 	RequestID       string `json:"request_id"`
 }
 
-// isSuccessStatusCode checks if the HTTP status code indicates success.
+// isSuccessStatusCode checks if the HTTP status code indicates success (2xx).
 func isSuccessStatusCode(statusCode int) bool {
 	return statusCode >= 200 && statusCode < 300
 }
 
-// isErrorStatusCode checks if the HTTP status code indicates an error.
+// isErrorStatusCode checks if the HTTP status code indicates an error (4xx or 5xx).
 func isErrorStatusCode(statusCode int) bool {
 	return statusCode >= 400 && statusCode < 600
 }
@@ -44,36 +55,20 @@ func toString(something interface{}) string {
 	return string(bodyBytes)
 }
 
-// toInt function to safely cast any to int
+// toInt safely casts any type to an int.
 func toInt(intAny any) (int, error) {
 	switch v := intAny.(type) {
 	case int:
 		return v, nil
-	case int8:
-		return int(v), nil
-	case int16:
-		return int(v), nil
-	case int32:
-		return int(v), nil
-	case int64:
-		return int(v), nil
-	case uint:
-		return int(v), nil
-	case uint8:
-		return int(v), nil
-	case uint16:
-		return int(v), nil
-	case uint32:
-		return int(v), nil
-	case uint64:
-		if v > uint64(^uint(0)>>1) {
+	case int8, int16, int32, int64:
+		return int(v.(int64)), nil
+	case uint, uint8, uint16, uint32, uint64:
+		if v.(uint64) > uint64(^uint(0)>>1) {
 			return 0, fmt.Errorf("value is too large for int type")
 		}
-		return int(v), nil
-	case float32:
-		return int(v), nil
-	case float64:
-		return int(v), nil
+		return int(v.(uint64)), nil
+	case float32, float64:
+		return int(v.(float64)), nil
 	case string:
 		return strconv.Atoi(v)
 	default:
@@ -81,6 +76,7 @@ func toInt(intAny any) (int, error) {
 	}
 }
 
+// unmarshalEvent unmarshals a JSON string into the specified type T.
 func unmarshalEvent[T any](eventArgs string) (T, error) {
 	var event T
 
@@ -93,86 +89,98 @@ func unmarshalEvent[T any](eventArgs string) (T, error) {
 	return event, err
 }
 
-func handleResponse(result interface{}) (string, error) {
+// handleResponse processes the result and converts it to a JSON string or error.
+// The function supports several return types as per DigitalOcean Functions Go runtime specifications.
+// Refer to: https://docs.digitalocean.com/products/functions/reference/runtimes/go/#returns
+func handleResponse(result interface{}) (response string, err error) {
 	if result == nil {
-		return "", nil
+		return
 	}
-
-	var jsonResponse string
-	var err error
 
 	switch v := result.(type) {
 	case []byte:
-		jsonResponse = string(v)
+		// If the result is a byte slice, convert it directly to a string.
+		// This case handles binary data or simple string responses that are encoded as bytes.
+		response = string(v)
 	case string:
-		jsonResponse = v
+		// If the result is a string, use it directly.
+		// This is the simplest return type, where the function directly returns a string response.
+		response = v
 	case *http.Response:
-
+		// If the result is an HTTP response, read the body.
+		// This case handles HTTP responses, which may include headers, status codes, and body content.
+		// The body is read and converted to a string, and the status code is checked for success.
 		body, readErr := io.ReadAll(v.Body)
 		if readErr != nil {
-			log.Fatal(readErr)
+			err = readErr
+			return
 		}
-		jsonResponse = string(body)
+		response = string(body)
 		if !isSuccessStatusCode(v.StatusCode) {
-			err = fmt.Errorf("https status code %v", v.StatusCode)
+			err = &htmlErrorResponse{response}
+			return
 		}
 	default:
-		// cast to map as default
-
-		// Marshal the struct to JSON
+		// Default case: attempt to marshal the result to JSON and process it as a map.
+		// This case handles structured data, typically returned as a struct or a map.
+		// The data is marshaled to JSON, and specific keys like "body" and "statusCode" are processed.
 		jsonData, marshalErr := json.Marshal(v)
 		if marshalErr != nil {
-			return marshalErr.Error(), marshalErr
+			err = marshalErr
+			return
 		}
+		// Temporarily set the response as jsonData in case further processing fails.
+		response = string(jsonData)
 
-		// Unmarshal the JSON to a map[string]interface{}
 		var resultMap map[string]interface{}
 		unmarshalErr := json.Unmarshal(jsonData, &resultMap)
 		if unmarshalErr != nil {
-			return unmarshalErr.Error(), unmarshalErr
+			err = unmarshalErr
+			return
+		}
+
+		if body, ok := resultMap["body"]; ok {
+			response = toString(body)
 		}
 
 		if value, ok := resultMap["statusCode"]; ok {
 			statusCode, _ := toInt(value)
 			if !isSuccessStatusCode(statusCode) {
-				err = fmt.Errorf("https status code %v", statusCode)
+				err = &htmlErrorResponse{response}
+				return
 			}
-		}
-		if body, ok := resultMap["body"]; ok {
-			jsonResponse = toString(body)
-		} else {
-			//if resultMap has no body tag just return all the result map as the response body
-			jsonResponse = string(jsonData)
 		}
 	}
 
-	return string(jsonResponse), err
+	return
 }
 
+// mainFunctionWrapper is a placeholder for the main function logic.
+// The `ctx` parameter is a context with values as specified in https://docs.digitalocean.com/products/functions/reference/runtimes/go/#context-parameter
+// The `event` parameter is an `any` type that matches https://docs.digitalocean.com/products/functions/reference/runtimes/go/#event-parameter
 func mainFunctionWrapper(ctx context.Context, event any) (string, error) {
 	panic("mainFunctionWrapper not implemented")
 }
 
-func main() {
-	if len(os.Args) < 3 {
-		log.Fatal("Not enough arguments provided")
-	}
-
-	event, err := unmarshalEvent[[]byte](os.Args[2])
+// runMain takes context and event arguments as strings, parses them, and runs the main function wrapper.
+// The context argument should match https://docs.digitalocean.com/products/functions/reference/runtimes/go/#context-parameter
+// The event argument should match https://docs.digitalocean.com/products/functions/reference/runtimes/go/#event-parameter
+func runMain(ctxStr, eventStr string) (string, error) {
+	event, err := unmarshalEvent[[]byte](eventStr)
 	if err != nil {
-		log.Fatal("Invalid event argument")
+		return "", fmt.Errorf("Invalid event argument: %w", err)
 	}
 
 	ctx := context.Background()
 
 	var contextParam ContextParameter
-	err = json.Unmarshal([]byte(os.Args[1]), &contextParam)
+	err = json.Unmarshal([]byte(ctxStr), &contextParam)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
 
-	// setting the context values
-	// https://docs.digitalocean.com/products/functions/reference/runtimes/go/#context-parameter
+	// Setting the context values based on DigitalOcean Functions context parameters
+	// Reference: https://docs.digitalocean.com/products/functions/reference/runtimes/go/#context-parameter
 	ctx = context.WithValue(ctx, "activation_id", contextParam.ActivationID)
 	ctx = context.WithValue(ctx, "api_host", contextParam.APIHost)
 	ctx = context.WithValue(ctx, "api_key", contextParam.APIKey)
@@ -181,11 +189,27 @@ func main() {
 	ctx = context.WithValue(ctx, "namespace", contextParam.Namespace)
 	ctx = context.WithValue(ctx, "request_id", contextParam.RequestID)
 
-	result, err := mainFunctionWrapper(ctx, event)
+	return mainFunctionWrapper(ctx, event)
+}
 
-	if err != nil {
-		log.Fatal(result)
+// main is the entry point of the program. It takes command-line arguments, parses them, and runs the main function logic.
+// The main function expects at least two command-line arguments:
+// 1. Context parameter (string): JSON string that matches the DigitalOcean Functions context parameter structure.
+// 2. Event parameter (string): JSON string that matches the DigitalOcean Functions event parameter structure.
+func main() {
+	if len(os.Args) < 3 {
+		fmt.Fprintln(os.Stderr, "Not enough arguments provided")
+		os.Exit(1)
 	}
-
-	fmt.Println(result)
+	result, err := runMain(os.Args[1], os.Args[2])
+	if err != nil {
+		if _, ok := err.(*htmlErrorResponse); ok {
+			fmt.Fprintln(os.Stderr, err.Error())
+		} else {
+			fmt.Fprintln(os.Stderr, logOutput+err.Error())
+			os.Exit(1)
+		}
+	} else {
+		fmt.Fprintln(os.Stdout, result)
+	}
 }
