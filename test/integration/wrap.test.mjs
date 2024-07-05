@@ -10,6 +10,7 @@ import chaiAsPromised from "chai-as-promised";
 
 // Configure Chai to use chai-as-promised
 chai.use(chaiAsPromised);
+chai.config.truncateThreshold = 0; // Disable truncating
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -86,13 +87,20 @@ describe("CLI", function () {
 
       const output = executeWrapper(args);
 
-      const expectedOutput = `Executed successfully with ctx: ${JSON.stringify(
+      const expectedBody = `Executed successfully with ctx: ${JSON.stringify(
         ctxArgs
       )}, event: ${JSON.stringify(eventArgs)}`;
 
-      await chai
-        .expect(output.then((o) => o.trim()))
-        .to.eventually.include(expectedOutput.trim());
+      await chai.expect(output.then((o) => o.trim())).to.eventually.include(
+        JSON.stringify(
+          {
+            body: expectedBody,
+            statusCode: 200,
+          },
+          null,
+          2
+        ).trim()
+      ); // Pretty-print JSON with 2 spaces indentation
     });
 
     it("should return an error if the event arguments are not a json", async function () {
@@ -156,13 +164,20 @@ describe("CLI", function () {
 
       const output = executeWrapper(args);
 
-      const expectedOutput = `Executed successfully with ctx: ${JSON.stringify(
+      const expectedBody = `Executed successfully with ctx: ${JSON.stringify(
         ctxArgs
       )}, event: ${JSON.stringify(eventArgs)}`;
 
-      await chai
-        .expect(output.then((o) => o.trim()))
-        .to.eventually.include(expectedOutput.trim());
+      await chai.expect(output.then((o) => o.trim())).to.eventually.include(
+        JSON.stringify(
+          {
+            body: expectedBody,
+            statusCode: 200,
+          },
+          null,
+          2
+        ).trim()
+      ); // Pretty-print JSON with 2 spaces indentation
     });
 
     it("should return an error if the event arguments are not a json", async function () {
@@ -265,13 +280,20 @@ describe("CLI", function () {
 
       const output = executeWrapper(args);
 
-      const expectedOutput = `Executed successfully with ctx: ${""}, event: ${JSON.stringify(
+      const expectedBody = `Executed successfully with ctx: ${""}, event: ${JSON.stringify(
         eventArgs
       )}`;
 
-      await chai
-        .expect(output.then((o) => o.trim()))
-        .to.eventually.include(expectedOutput.trim());
+      await chai.expect(output.then((o) => o.trim())).to.eventually.include(
+        JSON.stringify(
+          {
+            body: expectedBody,
+            statusCode: 200,
+          },
+          null,
+          2
+        ).trim()
+      ); // Pretty-print JSON with 2 spaces indentation
     });
   });
 
@@ -306,13 +328,25 @@ describe("CLI", function () {
 
       const output = executeWrapper(args);
 
-      const expectedOutput = `Executed successfully with ctx: ${JSON.stringify(
-        ctxArgs
-      )}, event: ${""}`;
+      // const expectedOutput = `Executed successfully with ctx: ${JSON.stringify(
+      //   ctxArgs
+      // )}, event: ${""}`;
 
-      await chai
-        .expect(output.then((o) => o.trim()))
-        .to.eventually.include(expectedOutput.trim());
+      // Create the expected output with single-line JSON for ctxArgs
+      const expectedBody = `Executed successfully with ctx: ${JSON.stringify(
+        ctxArgs
+      )}, event: `;
+
+      await chai.expect(output.then((o) => o.trim())).to.eventually.include(
+        JSON.stringify(
+          {
+            body: expectedBody,
+            statusCode: 200,
+          },
+          null,
+          2
+        ).trim()
+      ); // Pretty-print JSON with 2 spaces indentation
     });
   });
 });
