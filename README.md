@@ -72,6 +72,14 @@ man dogo-wrap
 - `--do_project_output`, `--out` or `-o`: Output directory for the wrapped project (default: `./do_wrapped_function/`).
 - `--files_to_keep`, `--ftk`: Array of files to keep in each of the function folders (default:` [".env"]`).
 
+### Environment Variables
+
+The following optional environment variables can be set to customize the function behavior:
+
+- `START_DELIMITER`: Start delimiter for extracting JSON response (default: `<<<<<<<<<<<<<<<response<<<<<<<<<<<<<<<`).
+- `END_DELIMITER`: End delimiter for extracting JSON response (default: `>>>>>>>>>>>>>>>response>>>>>>>>>>>>>>>`).
+
+
 ## Commands
 
 ### Build Go Project
