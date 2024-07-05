@@ -49,7 +49,16 @@ describe("do-js-wrapper main", () => {
   });
 
   it("should execute successfully with correct stdout and no stderr", async () => {
-    execFileAsyncMock.resolves({ stdout: "Success output", stderr: "" });
+    execFileAsyncMock.resolves({ stdout: `<<<<<<<<<<<<<<<response<<<<<<<<<<<<<<<
+{
+  "body": "Success output",
+  "statusCode": 200,
+  "headers": {
+    "Content-Type": "application/json"
+  }
+}
+>>>>>>>>>>>>>>>response>>>>>>>>>>>>>>>>
+`, stderr: "" });
 
     const event = { key: "value" };
     const context = { contextKey: "contextValue" };
@@ -77,7 +86,7 @@ describe("do-js-wrapper main", () => {
     const result = await main(event, context);
 
     chai.expect(result).to.deep.equal({
-      body: "Some error occurred",
+      body: "No valid JSON response found",
       statusCode: 500,
       headers: {
         "Content-Type": "text/plain",
@@ -88,7 +97,16 @@ describe("do-js-wrapper main", () => {
   it("should log stderr output if present", async () => {
     const errorOutput = "Some error in stderr"
     execFileAsyncMock.resolves({
-      stdout: "Success output",
+      stdout: `<<<<<<<<<<<<<<<response<<<<<<<<<<<<<<<
+{
+  "body": "Success output",
+  "statusCode": 200,
+  "headers": {
+    "Content-Type": "text/plain"
+  }
+}
+>>>>>>>>>>>>>>>response>>>>>>>>>>>>>>>>
+`,
       stderr: errorOutput,
     });
 
@@ -98,13 +116,13 @@ describe("do-js-wrapper main", () => {
     const result = await main(event, context);
 
     chai.expect(result).to.deep.equal({
-      body: errorOutput,
-      statusCode: 500,
+      body: "Success output",
+      statusCode: 200,
       headers: {
         "Content-Type": "text/plain",
       },
     }); 
-    chai.expect(consoleLogSpy.calledWith(`Output (returning error): ${errorOutput}`)).to.be.true;
+    chai.expect(consoleLogSpy.calledWith(`WrappedGoLog (stderr): ${errorOutput}`)).to.be.true;
   });
 
   it("should handle execution failure and return 500 status code", async () => {

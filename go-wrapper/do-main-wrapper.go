@@ -5,21 +5,28 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 )
 
 const logOutput = "- "
 
-// htmlErrorResponse represents an error response in HTML format.
-type htmlErrorResponse struct {
-	body string
-}
+// DoGoWrapperResponse represents the structure of the HTTP response returned by a DigitalOcean function.
+type DoGoWrapperResponse struct {
+	// Body contains the main content of the response.
+	// It can be of any type, typically string or JSON object.
+	Body interface{} `json:"body,omitempty"`
 
-// Error implements the error interface for htmlErrorResponse.
-func (t *htmlErrorResponse) Error() string {
-	return t.body
+	// StatusCode represents the HTTP status code for the response.
+	// For example, 200 for success, 404 for not found, etc.
+	StatusCode int `json:"statusCode,omitempty"`
+
+	// Headers contains the HTTP headers for the response.
+	// It is a map where the key is the header name and the value is the header value.
+	Headers map[string]string `json:"headers,omitempty"`
 }
 
 // ContextParameter represents the structure for context parameters.
@@ -76,6 +83,16 @@ func toInt(intAny any) (int, error) {
 	}
 }
 
+// Convert http.Header (map[string][]string) to map[string]string
+func convertHeaderToMapString(header http.Header) map[string]string {
+	result := make(map[string]string)
+	for key, values := range header {
+		// Concatenate all values for the key into a single string
+		result[key] = strings.Join(values, ", ")
+	}
+	return result
+}
+
 // unmarshalEvent unmarshals a JSON string into the specified type T.
 func unmarshalEvent[T any](eventArgs string) (T, error) {
 	var event T
@@ -92,34 +109,41 @@ func unmarshalEvent[T any](eventArgs string) (T, error) {
 // handleResponse processes the result and converts it to a JSON string or error.
 // The function supports several return types as per DigitalOcean Functions Go runtime specifications.
 // Refer to: https://docs.digitalocean.com/products/functions/reference/runtimes/go/#returns
-func handleResponse(result interface{}) (response string, err error) {
+func handleResponse(result interface{}) (response *DoGoWrapperResponse, err error) {
 	if result == nil {
-		return
+		return &DoGoWrapperResponse{StatusCode: http.StatusAccepted}, nil
 	}
 
 	switch v := result.(type) {
 	case []byte:
 		// If the result is a byte slice, convert it directly to a string.
 		// This case handles binary data or simple string responses that are encoded as bytes.
-		response = string(v)
+		response = &DoGoWrapperResponse{Body: v, StatusCode: http.StatusAccepted}
 	case string:
 		// If the result is a string, use it directly.
 		// This is the simplest return type, where the function directly returns a string response.
-		response = v
-	case *http.Response:
+		response = &DoGoWrapperResponse{Body: v, StatusCode: http.StatusAccepted}
+	case *http.Response, http.Response:
+
+		pHResponse, ok := v.(*http.Response)
+		if !ok {
+			hResponse := v.(http.Response)
+			pHResponse = &hResponse
+		}
+
+		defer pHResponse.Body.Close()
+
 		// If the result is an HTTP response, read the body.
 		// This case handles HTTP responses, which may include headers, status codes, and body content.
 		// The body is read and converted to a string, and the status code is checked for success.
-		body, readErr := io.ReadAll(v.Body)
+		body, readErr := io.ReadAll(pHResponse.Body)
 		if readErr != nil {
 			err = readErr
 			return
 		}
-		response = string(body)
-		if !isSuccessStatusCode(v.StatusCode) {
-			err = &htmlErrorResponse{response}
-			return
-		}
+
+		response = &DoGoWrapperResponse{Body: string(body), StatusCode: pHResponse.StatusCode, Headers: convertHeaderToMapString(pHResponse.Header)}
+
 	default:
 		// Default case: attempt to marshal the result to JSON and process it as a map.
 		// This case handles structured data, typically returned as a struct or a map.
@@ -130,7 +154,7 @@ func handleResponse(result interface{}) (response string, err error) {
 			return
 		}
 		// Temporarily set the response as jsonData in case further processing fails.
-		response = string(jsonData)
+		response = &DoGoWrapperResponse{Body: string(jsonData), StatusCode: http.StatusAccepted}
 
 		var resultMap map[string]interface{}
 		unmarshalErr := json.Unmarshal(jsonData, &resultMap)
@@ -140,16 +164,40 @@ func handleResponse(result interface{}) (response string, err error) {
 		}
 
 		if body, ok := resultMap["body"]; ok {
-			response = toString(body)
+			response.Body = body
 		}
 
 		if value, ok := resultMap["statusCode"]; ok {
 			statusCode, _ := toInt(value)
-			if !isSuccessStatusCode(statusCode) {
-				err = &htmlErrorResponse{response}
-				return
+			response.StatusCode = statusCode
+		}
+
+		// Check the type of headers and handle accordingly
+		if headers, ok := resultMap["headers"]; ok {
+			switch h := headers.(type) {
+			case string:
+				var headersMap map[string]string
+				unmarshalErr := json.Unmarshal([]byte(h), &headersMap)
+				if unmarshalErr != nil {
+					err = unmarshalErr
+					return
+				}
+				fmt.Println("Headers Map (from string):", headersMap)
+			case map[string]interface{}:
+				// Convert map[string]interface{} to map[string]string
+				headersMap := make(map[string]string)
+				for k, v := range h {
+					if strVal, ok := v.(string); ok {
+						headersMap[k] = strVal
+					} else {
+						fmt.Fprintln(os.Stderr, "Handling response: Header value is not a string:", k, v)
+					}
+				}
+			default:
+				fmt.Fprintln(os.Stderr, "Handling response: Unhandled type for headers:", h)
 			}
 		}
+
 	}
 
 	return
@@ -158,17 +206,17 @@ func handleResponse(result interface{}) (response string, err error) {
 // mainFunctionWrapper is a placeholder for the main function logic.
 // The `ctx` parameter is a context with values as specified in https://docs.digitalocean.com/products/functions/reference/runtimes/go/#context-parameter
 // The `event` parameter is an `any` type that matches https://docs.digitalocean.com/products/functions/reference/runtimes/go/#event-parameter
-func mainFunctionWrapper(ctx context.Context, event any) (string, error) {
+func mainFunctionWrapper(ctx context.Context, event any) (*DoGoWrapperResponse, error) {
 	panic("mainFunctionWrapper not implemented")
 }
 
 // runMain takes context and event arguments as strings, parses them, and runs the main function wrapper.
 // The context argument should match https://docs.digitalocean.com/products/functions/reference/runtimes/go/#context-parameter
 // The event argument should match https://docs.digitalocean.com/products/functions/reference/runtimes/go/#event-parameter
-func runMain(ctxStr, eventStr string) (string, error) {
+func runMain(ctxStr, eventStr string) (*DoGoWrapperResponse, error) {
 	event, err := unmarshalEvent[[]byte](eventStr)
 	if err != nil {
-		return "", fmt.Errorf("Invalid event argument: %w", err)
+		return nil, fmt.Errorf("Invalid event argument: %w", err)
 	}
 
 	ctx := context.Background()
@@ -176,7 +224,7 @@ func runMain(ctxStr, eventStr string) (string, error) {
 	var contextParam ContextParameter
 	err = json.Unmarshal([]byte(ctxStr), &contextParam)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	// Setting the context values based on DigitalOcean Functions context parameters
@@ -203,13 +251,36 @@ func main() {
 	}
 	result, err := runMain(os.Args[1], os.Args[2])
 	if err != nil {
-		if _, ok := err.(*htmlErrorResponse); ok {
-			fmt.Fprintln(os.Stderr, err.Error())
-		} else {
-			fmt.Fprintln(os.Stderr, logOutput+err.Error())
-			os.Exit(1)
-		}
+		fmt.Fprintln(os.Stderr, logOutput+err.Error())
+		printResponse(os.Stderr, result)
+		os.Exit(1)
 	} else {
-		fmt.Fprintln(os.Stdout, result)
+		printResponse(os.Stdout, result)
 	}
+}
+
+func printResponse(writer io.Writer, response *DoGoWrapperResponse) {
+
+	// Get delimiters from environment variables or use default values
+	startDelimiter := os.Getenv("START_DELIMITER")
+	if startDelimiter == "" {
+		startDelimiter = "<<<<<<<<<<<<<<<response<<<<<<<<<<<<<<<"
+	}
+
+	endDelimiter := os.Getenv("END_DELIMITER")
+	if endDelimiter == "" {
+		endDelimiter = ">>>>>>>>>>>>>>>response>>>>>>>>>>>>>>>"
+	}
+
+	// Marshal the response to JSON
+	jsonData, err := json.MarshalIndent(response, "", "  ")
+	if err != nil {
+		log.Panicf("Error marshalling DoGoWrapperResponse to JSON:", err)
+	}
+
+	// Print the custom wrapped JSON response
+	fmt.Fprintln(writer, startDelimiter)
+	fmt.Fprintln(writer, string(jsonData))
+	fmt.Fprintln(writer, endDelimiter)
+
 }
