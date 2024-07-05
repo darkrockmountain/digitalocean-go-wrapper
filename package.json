@@ -1,6 +1,6 @@
 {
   "name": "digitalocean-go-wrapper",
-  "version": "0.2.0-beta.3",
+  "version": "0.2.0-beta.4",
   "description": "A Node.js package that wraps a DigitalOcean function in Go, overcoming Go limitations on DigitalOcean by building binaries locally with the latest version.",
   "main": "index.mjs",
   "type": "module",
