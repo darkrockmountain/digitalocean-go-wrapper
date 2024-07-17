@@ -16,6 +16,7 @@
 [![GitHub Release](https://img.shields.io/github/v/release/darkrockmountain/digitalocean-go-wrapper)](https://github.com/darkrockmountain/digitalocean-go-wrapper/releases)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/DarkRockMountain/digitalocean-go-wrapper/badge)](https://scorecard.dev/viewer/?uri=github.com/DarkRockMountain/digitalocean-go-wrapper)
 [![Go Report Card](https://goreportcard.com/badge/github.com/darkrockmountain/digitalocean-go-wrapper?branch=master&kill_cache=1)](https://goreportcard.com/report/github.com/darkrockmountain/digitalocean-go-wrapper)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper?ref=badge_shield)
 <!-- ![Dependencies](https://img.shields.io/librariesio/github/DarkRockMountain/digitalocean-go-wrapper) -->
 <!-- ![Repo Size](https://img.shields.io/github/repo-size/DarkRockMountain/digitalocean-go-wrapper) -->
 <!-- ![npm downloads](https://img.shields.io/npm/dm/digitalocean-go-wrapper) -->
@@ -83,7 +84,9 @@ doctl serverless deploy <output_directory>
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper?ref=badge_large)
+
 ## Links
 - [Contributing](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
-
