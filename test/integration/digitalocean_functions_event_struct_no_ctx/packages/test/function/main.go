@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
@@ -25,15 +25,21 @@ func generateResponse(code int, body string) Response {
 	}
 }
 
-func Main(ctx context.Context, jsonData []byte) Response {
+// CustomInput represents the structure of the input arguments for the test function
+type CustomInput struct {
+	Text    string `json:"text"`
+	Boolean bool   `json:"boolean"`
+	Integer int    `json:"integer"`
+}
 
-	var jsonMap map[string]any
+func Main(event CustomInput) Response {
 
-	err := json.Unmarshal(jsonData, &jsonMap)
+	// Marshal the event to JSON
+	jsonEvent, err := json.Marshal(event)
 	if err != nil {
-		return generateResponse(http.StatusInternalServerError, fmt.Sprintf("Error unmarshaling from JSON: %v", err))
-
+		log.Fatalf("Error marshaling struct: %v", err)
 	}
 
-	return generateResponse(http.StatusOK, "Executed successfully")
+	return generateResponse(http.StatusOK, fmt.Sprintf("Executed successfully with ctx: %s, event: %s", "", string(jsonEvent)))
+
 }

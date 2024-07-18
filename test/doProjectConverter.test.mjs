@@ -8,16 +8,16 @@ import os from "os";
 // Define necessary paths and constants
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const do_go_dir = path.join(__dirname, "./data/digitalocean_functions");
+const do_go_dir = "path/to/digitalocean/functions";
 const yaml_file = "project.yml";
-const do_project_output = path.join(__dirname, "./data/out");
+const do_project_output = path.join(__dirname, "path/to/digitalocean/functions/out");
 const do_wrapper_output = "do_go_lang_compiled_wrapper";
 const go_built_name = "compiled_function";
 const files_to_keep = [];
 const now = 1717200000000;
 const tmpdir = "/mock/tmpdir";
 
-describe("doProjectConverter - main function", function () {
+describe("doProjectConverter - doProjectConverter function", function () {
   let sandbox;
   const argv = {
     do_go_dir: do_go_dir,
@@ -37,7 +37,7 @@ describe("doProjectConverter - main function", function () {
     sandbox.restore();
   });
 
-  it("should execute the main function correctly", async function () {
+  it("should execute the convertDoGoProject function correctly", async function () {
     // Set up test data and mocks
     const yamlData = {
       packages: [
@@ -88,14 +88,14 @@ describe("doProjectConverter - main function", function () {
         generateWrapper: sandbox.stub().returns(true),
       },
       "../src/goBuilder.mjs": {
-        buildGoProject: sandbox.stub().returns("compiled_wrapper_path"),
+        buildGoProject: sandbox.stub().resolves("compiled_wrapper_path"),
       },
     };
 
-    const main = await esmock("../src/doProjectConverter.mjs", mocks);
+    const doProjectConverter = await esmock("../src/doProjectConverter.mjs", mocks);
 
-    // Call the main function
-    await main.default(
+    // Call the default function (convertDoGoProject)
+    await doProjectConverter.default(
       argv.do_go_dir,
       argv.do_project_output,
       argv.yaml_file,
@@ -278,7 +278,7 @@ describe("doProjectConverter - main function", function () {
     expect(mocks["../src/utils/fileUtils.mjs"].copy.called).to.be.true;
   });
 
-  it("should handle edge cases in main function", async function () {
+  it("should handle edge cases in convertDoGoProject function", async function () {
     // Set up test data and mocks
     const yamlData = {
       packages: [
@@ -329,14 +329,14 @@ describe("doProjectConverter - main function", function () {
         generateWrapper: sandbox.stub().returns(true),
       },
       "../src/goBuilder.mjs": {
-        buildGoProject: sandbox.stub().returns("compiled_wrapper_path"),
+        buildGoProject: sandbox.stub().resolves("compiled_wrapper_path"),
       },
     };
 
-    const main = await esmock("../src/doProjectConverter.mjs", mocks);
+    const doProjectConverter = await esmock("../src/doProjectConverter.mjs", mocks);
 
-    // Call the main function
-    await main.default(
+    // Call the default function (convertDoGoProject)
+    await doProjectConverter.default(
       argv.do_go_dir,
       argv.do_project_output,
       argv.yaml_file,
