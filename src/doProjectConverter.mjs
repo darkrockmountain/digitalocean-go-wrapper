@@ -10,6 +10,8 @@ import {
   listFoldersWithPrefix,
   checkDirExists,
   remove,
+  readUTF8File,
+  writeUTF8File,
 } from "./utils/fileUtils.mjs";
 import {
   writeYamlFile,
@@ -25,12 +27,36 @@ export const DEFAULT_KEEP_WRAPPER = false;
 export const DEFAULT_DO_WRAPPER_OUTPUT = `do_go_lang_compiled_wrapper/`;
 
 // Constants
-const NODEJS_PACKAGE_FILE = "package.json";
+const NODEJS_PACKAGE_FILE_NAME = "package.json";
+const JS_WRAPPER_FILE_NAME = "do-js-wrapper.js";
+
 const JS_WRAPPER_TEMPLATE_DIR = path.join(
   path.dirname(new URL(import.meta.url).pathname),
   "../js-wrapper/"
 );
 const packagesFolderName = "packages";
+
+/**
+ * Updates the JS wrapper file by replacing the occurrence of DEFAULT_GO_BUILT_NAME
+ * with the given built_go_name.
+ * @param {string} built_go_name - The new name to replace DEFAULT_GO_BUILT_NAME.
+ * @param {string} wrapperPath - The path to the JS wrapper file.
+ * @throws Will throw an error if the wrapperPath file cannot be read or written.
+ */
+function updateJSWrapperBuildName(built_go_name, wrapperPath) {
+  try {
+    // Read the wrapper file content
+    let fileContent = readUTF8File(wrapperPath);
+
+    // Replace the occurrence of DEFAULT_GO_BUILT_NAME with built_go_name
+    const updatedContent = fileContent.replace(new RegExp(DEFAULT_GO_BUILT_NAME, 'g'), built_go_name);
+
+    // Write the updated content back to the file
+    writeUTF8File(wrapperPath, updatedContent);
+  } catch (error) {
+    throw new Error(`Error processing file at ${wrapperPath}: ${error.message}`);
+  }
+}
 
 /**
  * Updates the name in package.json based on the function path.
@@ -151,12 +177,15 @@ function convertIntoNodeJSPackage(
   removeFolderContent(fullPath, filesToKeep);
   copy(JS_WRAPPER_TEMPLATE_DIR, fullPath);
 
-  const filePath = path.join(fullPath, NODEJS_PACKAGE_FILE);
+  updateJSWrapperBuildName(go_built_name, path.join(fullPath, JS_WRAPPER_FILE_NAME) )
 
-  let packageJsonData = readJsonFile(filePath);
+
+  const nodePackageJsonFilePath = path.join(fullPath, NODEJS_PACKAGE_FILE_NAME);
+
+  let packageJsonData = readJsonFile(nodePackageJsonFilePath);
   if (packageJsonData) {
     packageJsonData = updatePackageJson(packageJsonData, functionPath);
-    writeJsonFile(filePath, packageJsonData);
+    writeJsonFile(nodePackageJsonFilePath, packageJsonData);
   }
 
   copy(compiledGoFilePath, path.join(fullPath, go_built_name));
@@ -227,6 +256,8 @@ async function convertDoGoProject(
     writeYamlFile(path.join(tempDir, yaml_file), yamlData);
 
     copy(tempDir, do_project_output);
+  } catch (e) {
+    console.error(e)
   } finally {
     remove(tempDir);
   }
