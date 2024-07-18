@@ -122,7 +122,9 @@ function copyDoPackages(do_go_dir, tempDir, filesToKeep) {
   );
   if (filesToKeep && filesToKeep.length > 0) {
     filesToKeep.forEach((fileName) => {
-      copy(path.join(do_go_dir, fileName), path.join(tempDir, fileName));
+      try {
+        copy(path.join(do_go_dir, fileName), path.join(tempDir, fileName));
+      } catch (e) {}
     });
   }
 }
@@ -134,6 +136,7 @@ function copyDoPackages(do_go_dir, tempDir, filesToKeep) {
  * @param {string} functionPath - The function path.
  * @param {string} compiledGoFilePath - The compiled Go file path.
  * @param {string} go_built_name - The compiled binary file of the Go project.
+ * @param {Array<string>} filesToKeep - List of files to keep.
  * @returns {object} - The updated YAML data.
  */
 function convertIntoNodeJSPackage(
@@ -141,10 +144,11 @@ function convertIntoNodeJSPackage(
   tempDir,
   functionPath,
   compiledGoFilePath,
-  go_built_name
+  go_built_name,
+  filesToKeep
 ) {
   const fullPath = path.join(tempDir, functionPath);
-  removeFolderContent(fullPath);
+  removeFolderContent(fullPath, filesToKeep);
   copy(JS_WRAPPER_TEMPLATE_DIR, fullPath);
 
   const filePath = path.join(fullPath, NODEJS_PACKAGE_FILE);
@@ -169,7 +173,7 @@ function convertIntoNodeJSPackage(
  * @param {boolean} keep_wrapper - Flag to keep the wrapper directory.
  * @param {string} do_wrapper_output - The directory for the compiled wrapper output.
  */
-function main(
+async function convertDoGoProject(
   do_go_dir,
   do_project_output,
   yaml_file = DEFAULT_YAML_FILE,
@@ -183,11 +187,14 @@ function main(
   try {
     // Create temporary directory and copy necessary files
     checkDirExists(tempDir);
-    copyDoPackages(do_go_dir, tempDir, filesToKeep);
+
+    copyDoPackages(do_go_dir, tempDir, [
+      ...new Set([...filesToKeep, ...DEFAULT_FILES_TO_KEEP]),
+    ]); //always keep the default fields on the main folder
 
     let yamlData = getYamlData(do_go_dir);
 
-    getDoGoFunction(yamlData).forEach((func) => {
+    for (const func of getDoGoFunction(yamlData)) {
       const do_go_wrapper_path = path.join(
         tempDir,
         do_wrapper_output,
@@ -196,16 +203,22 @@ function main(
       copy(path.join(tempDir, func.goFunctionPath), do_go_wrapper_path);
       generateWrapper(do_go_wrapper_path, func.goMainFunctionName);
 
-      const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
+      // const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
+
+      const compiledWrapper = await buildGoProject(
+        do_go_wrapper_path,
+        go_built_name
+      );
 
       yamlData = convertIntoNodeJSPackage(
         yamlData,
         tempDir,
         func.goFunctionPath,
         compiledWrapper,
-        go_built_name
+        go_built_name,
+        filesToKeep
       );
-    });
+    }
 
     if (!keep_wrapper) {
       remove(path.join(tempDir, do_wrapper_output));
@@ -219,7 +232,7 @@ function main(
   }
 }
 
-export default main;
+export default convertDoGoProject;
 
 export {
   updatePackageJson,

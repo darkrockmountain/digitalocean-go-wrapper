@@ -1,7 +1,0 @@
-packages:
-  - name: test
-    environment:
-        ENV_VAR: "${ENV_VAR}"
-    functions:
-      - name: function
-        runtime: 'go:1.20'
