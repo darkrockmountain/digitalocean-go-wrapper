@@ -17,9 +17,10 @@
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/darkrockmountain/digitalocean-go-wrapper/badge)](https://scorecard.dev/viewer/?uri=github.com/darkrockmountain/digitalocean-go-wrapper)
 [![Go Report Card](https://goreportcard.com/badge/github.com/darkrockmountain/digitalocean-go-wrapper?branch=master&kill_cache=1)](https://goreportcard.com/report/github.com/darkrockmountain/digitalocean-go-wrapper)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper?ref=badge_shield)
-[![Dependencies](https://img.shields.io/librariesio/github/darkrockmountain/digitalocean-go-wrapper)](https://www.npmjs.com/package/digitalocean-go-wrapper)
-[![Repo Size](https://img.shields.io/github/repo-size/darkrockmountain/digitalocean-go-wrapper)](https://www.npmjs.com/package/digitalocean-go-wrapper)
-[![npm downloads](https://img.shields.io/npm/dm/digitalocean-go-wrapper)](https://www.npmjs.com/package/digitalocean-go-wrapper)
+[![Repo Size](https://img.shields.io/github/repo-size/darkrockmountain/digitalocean-go-wrapper?kill_cache=1)](https://www.npmjs.com/package/digitalocean-go-wrapper)
+[![npm downloads](https://img.shields.io/npm/dm/digitalocean-go-wrapper?kill_cache=1)](https://www.npmjs.com/package/digitalocean-go-wrapper)
+<!-- [![Dependencies](https://img.shields.io/librariesio/github/darkrockmountain/digitalocean-go-wrapper?kill_cache=1)](package.json) -->
+
 
 
 DoGo-Wrapper is a Node.js package that simplifies deploying Go functions on DigitalOcean. It overcomes Go's limitations on DigitalOcean by building binaries locally using the latest version. Easily convert your Go projects into deployable Node.js packages and deploy them to DigitalOcean with minimal effort.
