@@ -10,7 +10,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const do_go_dir = "path/to/digitalocean/functions";
 const yaml_file = "project.yml";
-const do_project_output = path.join(__dirname, "path/to/digitalocean/functions/out");
+const do_project_output = path.join(
+  __dirname,
+  "path/to/digitalocean/functions/out"
+);
 const do_wrapper_output = "do_go_lang_compiled_wrapper";
 const go_built_name = "compiled_function";
 const files_to_keep = [];
@@ -78,6 +81,19 @@ describe("doProjectConverter - doProjectConverter function", function () {
           .returns(["packages/package-name/function-name"]),
         checkDirExists: sandbox.stub().returns(true),
         remove: sandbox.stub().returns(true),
+        readUTF8File: sandbox.stub()
+          .returns(` const { stdout, stderr } = await execFileAsync(
+          '${argv.go_built_name}',
+          [JSON.stringify(context), JSON.stringify(event)],
+          {
+            env: {
+              ...process.env,
+              START_DELIMITER: defaultStartDelimiter,
+              END_DELIMITER: defaultEndDelimiter,
+            },
+          }
+        );`),
+        writeUTF8File: sandbox.stub(),
       },
       "../src/utils/yamlUtils.mjs": {
         writeYamlFile: sandbox.stub().returns(true),
@@ -92,7 +108,10 @@ describe("doProjectConverter - doProjectConverter function", function () {
       },
     };
 
-    const doProjectConverter = await esmock("../src/doProjectConverter.mjs", mocks);
+    const doProjectConverter = await esmock(
+      "../src/doProjectConverter.mjs",
+      mocks
+    );
 
     // Call the default function (convertDoGoProject)
     await doProjectConverter.default(
@@ -233,6 +252,7 @@ describe("doProjectConverter - doProjectConverter function", function () {
   });
 
   it("should convert into Node.js package correctly in convertIntoNodeJSPackage", async function () {
+    const compiledFunctionFileName = "compiled_function";
     const mocks = {
       "../src/utils/fileUtils.mjs": {
         readJsonFile: sandbox.stub().returns({
@@ -243,6 +263,19 @@ describe("doProjectConverter - doProjectConverter function", function () {
         writeJsonFile: sandbox.stub().returns(true),
         removeFolderContent: sandbox.stub().returns(true),
         copy: sandbox.stub().returns(true),
+        readUTF8File: sandbox.stub()
+          .returns(` const { stdout, stderr } = await execFileAsync(
+          '${compiledFunctionFileName}',
+          [JSON.stringify(context), JSON.stringify(event)],
+          {
+            env: {
+              ...process.env,
+              START_DELIMITER: defaultStartDelimiter,
+              END_DELIMITER: defaultEndDelimiter,
+            },
+          }
+        );`),
+        writeUTF8File: sandbox.stub(),
       },
       "../src/utils/yamlUtils.mjs": {
         hasParameter: sandbox.stub().returns(true),
@@ -267,7 +300,7 @@ describe("doProjectConverter - doProjectConverter function", function () {
       "/mock/tmpdir/copy-temp-1625158800000",
       "packages/package-name/function-name",
       "/compiled/path",
-      "compiled_function"
+      compiledFunctionFileName
     );
 
     expect(updatedYamlData).to.be.an("object");
@@ -333,7 +366,10 @@ describe("doProjectConverter - doProjectConverter function", function () {
       },
     };
 
-    const doProjectConverter = await esmock("../src/doProjectConverter.mjs", mocks);
+    const doProjectConverter = await esmock(
+      "../src/doProjectConverter.mjs",
+      mocks
+    );
 
     // Call the default function (convertDoGoProject)
     await doProjectConverter.default(
