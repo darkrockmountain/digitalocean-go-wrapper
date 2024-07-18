@@ -8,17 +8,18 @@
 
 # DoGo-Wrapper | DigitalOcean Go Serverless Wrapper
 
-![Build Status](https://github.com/DarkRockMountain/digitalocean-go-wrapper/actions/workflows/ci.yml/badge.svg)
-[![codecov](https://codecov.io/gh/DarkRockMountain/digitalocean-go-wrapper/graph/badge.svg?token=4S8BIA29OB)](https://codecov.io/gh/DarkRockMountain/digitalocean-go-wrapper)
-[![License](https://img.shields.io/github/license/DarkRockMountain/digitalocean-go-wrapper)](LICENSE)
+![Build Status](https://github.com/darkrockmountain/digitalocean-go-wrapper/actions/workflows/ci.yml/badge.svg)
+[![codecov](https://codecov.io/gh/darkrockmountain/digitalocean-go-wrapper/graph/badge.svg?token=4S8BIA29OB)](https://codecov.io/gh/darkrockmountain/digitalocean-go-wrapper)
+[![License](https://img.shields.io/github/license/darkrockmountain/digitalocean-go-wrapper)](LICENSE)
 [![node Version](https://img.shields.io/node/v/digitalocean-go-wrapper?kill_cache=1)](https://www.npmjs.com/package/digitalocean-go-wrapper)
 [![npm version](https://img.shields.io/npm/v/digitalocean-go-wrapper?kill_cache=1)](https://www.npmjs.com/package/digitalocean-go-wrapper)
 [![GitHub Release](https://img.shields.io/github/v/release/darkrockmountain/digitalocean-go-wrapper)](https://github.com/darkrockmountain/digitalocean-go-wrapper/releases)
-[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/DarkRockMountain/digitalocean-go-wrapper/badge)](https://scorecard.dev/viewer/?uri=github.com/DarkRockMountain/digitalocean-go-wrapper)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/darkrockmountain/digitalocean-go-wrapper/badge)](https://scorecard.dev/viewer/?uri=github.com/darkrockmountain/digitalocean-go-wrapper)
 [![Go Report Card](https://goreportcard.com/badge/github.com/darkrockmountain/digitalocean-go-wrapper?branch=master&kill_cache=1)](https://goreportcard.com/report/github.com/darkrockmountain/digitalocean-go-wrapper)
-<!-- ![Dependencies](https://img.shields.io/librariesio/github/DarkRockMountain/digitalocean-go-wrapper) -->
-<!-- ![Repo Size](https://img.shields.io/github/repo-size/DarkRockMountain/digitalocean-go-wrapper) -->
-<!-- ![npm downloads](https://img.shields.io/npm/dm/digitalocean-go-wrapper) -->
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper?ref=badge_shield)
+[![Dependencies](https://img.shields.io/librariesio/github/darkrockmountain/digitalocean-go-wrapper)](https://www.npmjs.com/package/digitalocean-go-wrapper)
+[![Repo Size](https://img.shields.io/github/repo-size/darkrockmountain/digitalocean-go-wrapper)](https://www.npmjs.com/package/digitalocean-go-wrapper)
+[![npm downloads](https://img.shields.io/npm/dm/digitalocean-go-wrapper)](https://www.npmjs.com/package/digitalocean-go-wrapper)
 
 
 DoGo-Wrapper is a Node.js package that simplifies deploying Go functions on DigitalOcean. It overcomes Go's limitations on DigitalOcean by building binaries locally using the latest version. Easily convert your Go projects into deployable Node.js packages and deploy them to DigitalOcean with minimal effort.
@@ -101,6 +102,9 @@ doctl serverless deploy <output_directory>
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarkrockmountain%2Fdigitalocean-go-wrapper?ref=badge_large)
+
 ## Links
 - [Contributing](CONTRIBUTING.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
@@ -108,4 +112,3 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Changelog
 
 See the [CHANGELOG.md](CHANGELOG.md) file for details on updates and changes.
-
