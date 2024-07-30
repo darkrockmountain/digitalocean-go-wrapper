@@ -1,0 +1,50 @@
+.TH DOGOWRAP 1 "June 2024" "0.2.0" "digitalocean-go-wrapper manual"
+.SH NAME
+dogo-wrap \- A Node.js package that wraps a DigitalOcean function in Go
+
+.SH SYNOPSIS
+.B dogo-wrap
+[\fIoptions\fR]
+
+.SH DESCRIPTION
+A Node.js package that wraps a DigitalOcean function in Go, overcoming Go limitations on DigitalOcean by building binaries locally with the latest version.
+
+.SH OPTIONS
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Show this help message and exit.
+.TP
+\fB\-y\fR, \fB\-\-yaml_file\fR
+Path to the YAML file (default: \fI./project.yml\fR).
+.TP
+\fB\-d\fR, \fB\-\-do_go_dir\fR
+Directory containing Go files (default: \fI./\fR).
+.TP
+\fB\-o\fR, \fB\-\-out\fR, \fB\-\-do_project_output\fR
+Output directory for the wrapped project (default: \fI./do_wrapped_function/\fR).
+.TP
+\fB\-\-go_built_name\fR
+Name of the built Go binary (default: \fIcompiled_function\fR).
+.TP
+\fB\-\-files_to_keep\fR, \fB\-\-ftk\fR
+Array of files to keep in each of the function folders (default: \fI[".env"]\fR).
+.TP
+\fB\-\-keep_wrapper\fR
+Flag to keep the wrapper in Go. If false, it will delete this intermediate step (default: \fIfalse\fR).
+.TP
+\fB\-\-do_wrapper_output\fR
+Output directory for the Go wrapper code (default: \fI./do_go_lang_compiled_wrapper/\fR).
+.TP
+\fB\-v\fR, \fB\-\-version\fR
+Show the version number.
+
+.SH EXAMPLES
+.TP
+.B dogo-wrap \-\-yaml_file project.yml \-\-do_go_dir src \-\-out dist
+Runs the tool with a custom YAML file, source directory, and output directory.
+
+.SH AUTHOR
+Written by DarkRockMountain.
+
+.SH COPYRIGHT
+This is free software; see the source for copying conditions. There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

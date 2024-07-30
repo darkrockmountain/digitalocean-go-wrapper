@@ -10,6 +10,8 @@ import {
   listFoldersWithPrefix,
   checkDirExists,
   remove,
+  readUTF8File,
+  writeUTF8File,
 } from "./utils/fileUtils.mjs";
 import {
   writeYamlFile,
@@ -25,12 +27,36 @@ export const DEFAULT_KEEP_WRAPPER = false;
 export const DEFAULT_DO_WRAPPER_OUTPUT = `do_go_lang_compiled_wrapper/`;
 
 // Constants
-const NODEJS_PACKAGE_FILE = "package.json";
+const NODEJS_PACKAGE_FILE_NAME = "package.json";
+const JS_WRAPPER_FILE_NAME = "do-js-wrapper.js";
+
 const JS_WRAPPER_TEMPLATE_DIR = path.join(
   path.dirname(new URL(import.meta.url).pathname),
   "../js-wrapper/"
 );
 const packagesFolderName = "packages";
+
+/**
+ * Updates the JS wrapper file by replacing the occurrence of DEFAULT_GO_BUILT_NAME
+ * with the given built_go_name.
+ * @param {string} built_go_name - The new name to replace DEFAULT_GO_BUILT_NAME.
+ * @param {string} wrapperPath - The path to the JS wrapper file.
+ * @throws Will throw an error if the wrapperPath file cannot be read or written.
+ */
+function updateJSWrapperBuildName(built_go_name, wrapperPath) {
+  try {
+    // Read the wrapper file content
+    let fileContent = readUTF8File(wrapperPath);
+
+    // Replace the occurrence of DEFAULT_GO_BUILT_NAME with built_go_name
+    const updatedContent = fileContent.replace(new RegExp(DEFAULT_GO_BUILT_NAME, 'g'), built_go_name);
+
+    // Write the updated content back to the file
+    writeUTF8File(wrapperPath, updatedContent);
+  } catch (error) {
+    throw new Error(`Error processing file at ${wrapperPath}: ${error.message}`);
+  }
+}
 
 /**
  * Updates the name in package.json based on the function path.
@@ -122,7 +148,9 @@ function copyDoPackages(do_go_dir, tempDir, filesToKeep) {
   );
   if (filesToKeep && filesToKeep.length > 0) {
     filesToKeep.forEach((fileName) => {
-      copy(path.join(do_go_dir, fileName), path.join(tempDir, fileName));
+      try {
+        copy(path.join(do_go_dir, fileName), path.join(tempDir, fileName));
+      } catch (e) {}
     });
   }
 }
@@ -134,6 +162,7 @@ function copyDoPackages(do_go_dir, tempDir, filesToKeep) {
  * @param {string} functionPath - The function path.
  * @param {string} compiledGoFilePath - The compiled Go file path.
  * @param {string} go_built_name - The compiled binary file of the Go project.
+ * @param {Array<string>} filesToKeep - List of files to keep.
  * @returns {object} - The updated YAML data.
  */
 function convertIntoNodeJSPackage(
@@ -141,18 +170,22 @@ function convertIntoNodeJSPackage(
   tempDir,
   functionPath,
   compiledGoFilePath,
-  go_built_name
+  go_built_name,
+  filesToKeep
 ) {
   const fullPath = path.join(tempDir, functionPath);
-  removeFolderContent(fullPath);
+  removeFolderContent(fullPath, filesToKeep);
   copy(JS_WRAPPER_TEMPLATE_DIR, fullPath);
 
-  const filePath = path.join(fullPath, NODEJS_PACKAGE_FILE);
+  updateJSWrapperBuildName(go_built_name, path.join(fullPath, JS_WRAPPER_FILE_NAME) )
 
-  let packageJsonData = readJsonFile(filePath);
+
+  const nodePackageJsonFilePath = path.join(fullPath, NODEJS_PACKAGE_FILE_NAME);
+
+  let packageJsonData = readJsonFile(nodePackageJsonFilePath);
   if (packageJsonData) {
     packageJsonData = updatePackageJson(packageJsonData, functionPath);
-    writeJsonFile(filePath, packageJsonData);
+    writeJsonFile(nodePackageJsonFilePath, packageJsonData);
   }
 
   copy(compiledGoFilePath, path.join(fullPath, go_built_name));
@@ -169,7 +202,7 @@ function convertIntoNodeJSPackage(
  * @param {boolean} keep_wrapper - Flag to keep the wrapper directory.
  * @param {string} do_wrapper_output - The directory for the compiled wrapper output.
  */
-function main(
+async function convertDoGoProject(
   do_go_dir,
   do_project_output,
   yaml_file = DEFAULT_YAML_FILE,
@@ -183,11 +216,14 @@ function main(
   try {
     // Create temporary directory and copy necessary files
     checkDirExists(tempDir);
-    copyDoPackages(do_go_dir, tempDir, filesToKeep);
+
+    copyDoPackages(do_go_dir, tempDir, [
+      ...new Set([...filesToKeep, ...DEFAULT_FILES_TO_KEEP]),
+    ]); //always keep the default fields on the main folder
 
     let yamlData = getYamlData(do_go_dir);
 
-    getDoGoFunction(yamlData).forEach((func) => {
+    for (const func of getDoGoFunction(yamlData)) {
       const do_go_wrapper_path = path.join(
         tempDir,
         do_wrapper_output,
@@ -196,16 +232,22 @@ function main(
       copy(path.join(tempDir, func.goFunctionPath), do_go_wrapper_path);
       generateWrapper(do_go_wrapper_path, func.goMainFunctionName);
 
-      const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
+      // const compiledWrapper = buildGoProject(do_go_wrapper_path, go_built_name);
+
+      const compiledWrapper = await buildGoProject(
+        do_go_wrapper_path,
+        go_built_name
+      );
 
       yamlData = convertIntoNodeJSPackage(
         yamlData,
         tempDir,
         func.goFunctionPath,
         compiledWrapper,
-        go_built_name
+        go_built_name,
+        filesToKeep
       );
-    });
+    }
 
     if (!keep_wrapper) {
       remove(path.join(tempDir, do_wrapper_output));
@@ -214,12 +256,14 @@ function main(
     writeYamlFile(path.join(tempDir, yaml_file), yamlData);
 
     copy(tempDir, do_project_output);
+  } catch (e) {
+    console.error(e)
   } finally {
     remove(tempDir);
   }
 }
 
-export default main;
+export default convertDoGoProject;
 
 export {
   updatePackageJson,

@@ -3,6 +3,7 @@ import sinon from "sinon";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import path from "path";
+import os from "os";
 import {
   readUTF8File,
   writeUTF8File,
@@ -87,31 +88,93 @@ describe("File Utils test", function () {
     });
   });
 
-  describe("removeFolderContent", function () {
-    it("should remove all content of a folder", function () {
-      const folderPath = "testFolder/";
-      const files = ["file1.txt", "file2.txt"];
-      const subFolder = "subFolder/";
-      sandbox.stub(fs, "readdirSync").callsFake((fullPath) => {
-        if (fullPath.includes(subFolder)){
-          return files
-        }
-        return [...files, subFolder];
-      });
-       
-      sandbox.stub(fs, "lstatSync").callsFake((fullPath) => {
-        if (fullPath.endsWith("/")) {
-          return { isDirectory: () => true };
-        }
-        return { isDirectory: () => false };
-      });
-      const unlinkSyncStub = sandbox.stub(fs, "unlinkSync");
-      const rmdirSyncStub = sandbox.stub(fs, "rmdirSync");
+  describe('removeFolderContent', () => {
+    let testDir;
 
-      removeFolderContent(folderPath);
+    beforeEach(() => {
+      // Create a temporary directory for testing
+      testDir = fs.mkdtempSync(path.join(os.tmpdir(), 'testDir-'));
 
-      expect(unlinkSyncStub.callCount).to.equal(4); //one for each file, one for subFolder/ and one for testFolder/
-      expect(rmdirSyncStub.calledWith(path.join(folderPath, subFolder))).to.be.true;
+      // Create some files and directories inside the test directory
+      fs.writeFileSync(path.join(testDir, 'file1.txt'), 'content1');
+      fs.writeFileSync(path.join(testDir, 'file2.txt'), 'content2');
+      fs.mkdirSync(path.join(testDir, 'subdir'));
+      fs.writeFileSync(path.join(testDir, 'subdir', 'file3.txt'), 'content3');
+      fs.mkdirSync(path.join(testDir, 'subdir', 'nestedsubdir'));
+      fs.writeFileSync(path.join(testDir, 'subdir', 'nestedsubdir', 'file4.txt'), 'content4');
+    });
+
+    afterEach(() => {
+      // Remove the test directory after each test
+      fs.rmSync(testDir, { recursive: true, force: true });
+    });
+
+    it('should remove all files and directories except the specified ones', () => {
+      const keepFiles = ['file1.txt', 'subdir/'];
+
+      removeFolderContent(testDir, keepFiles);
+
+      // Check that file1.txt and subdir still exist
+      expect(fs.existsSync(path.join(testDir, 'file1.txt'))).to.be.true;
+      expect(fs.existsSync(path.join(testDir, 'subdir'))).to.be.true;
+
+      // Check that file2.txt and subdir/file3.txt have been removed
+      expect(fs.existsSync(path.join(testDir, 'file2.txt'))).to.be.false;
+      expect(fs.existsSync(path.join(testDir, 'subdir', 'file3.txt'))).to.be.true;
+    });
+
+    it('should remove all files and directories if keepFiles is empty', () => {
+      removeFolderContent(testDir);
+
+      // Check that the directory is empty
+      const remainingFiles = fs.readdirSync(testDir);
+      expect(remainingFiles).to.be.empty;
+    });
+
+    it('should not fail if the folder is already empty', () => {
+      // Clear the test directory manually
+      fs.readdirSync(testDir).forEach((file) => {
+        const fullPath = path.join(testDir, file);
+        if (fs.lstatSync(fullPath).isDirectory()) {
+          fs.rmSync(fullPath, { recursive: true });
+        } else {
+          fs.unlinkSync(fullPath);
+        }
+      });
+
+      removeFolderContent(testDir);
+
+      // Check that the directory is still empty
+      const remainingFiles = fs.readdirSync(testDir);
+      expect(remainingFiles).to.be.empty;
+    });
+
+    it('should correctly skip nested files and directories specified in keepFiles', () => {
+      const keepFiles = ['subdir/nestedsubdir/file4.txt'];
+
+      removeFolderContent(testDir, keepFiles);
+
+      // Check that nested file still exists
+      expect(fs.existsSync(path.join(testDir, 'subdir', 'nestedsubdir', 'file4.txt'))).to.be.true;
+
+      // Check that other files have been removed
+      expect(fs.existsSync(path.join(testDir, 'file1.txt'))).to.be.false;
+      expect(fs.existsSync(path.join(testDir, 'file2.txt'))).to.be.false;
+      expect(fs.existsSync(path.join(testDir, 'subdir', 'file3.txt'))).to.be.false;
+    });
+
+    it('should correctly handle relative paths in keepFiles', () => {
+      const keepFiles = ['subdir/file3.txt'];
+
+      removeFolderContent(testDir, keepFiles);
+
+      // Check that specified file still exists
+      expect(fs.existsSync(path.join(testDir, 'subdir', 'file3.txt'))).to.be.true;
+
+      // Check that other files have been removed
+      expect(fs.existsSync(path.join(testDir, 'file1.txt'))).to.be.false;
+      expect(fs.existsSync(path.join(testDir, 'file2.txt'))).to.be.false;
+      expect(fs.existsSync(path.join(testDir, 'subdir', 'nestedsubdir', 'file4.txt'))).to.be.false;
     });
   });
 
