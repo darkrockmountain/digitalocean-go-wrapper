@@ -53,7 +53,7 @@ function executeWrapper(args) {
 
 const withScenario = describe;
 
-describe("CLI", function () {
+describe("WRAP TEST", function () {
   this.timeout(10000); // Set the timeout for the entire suite to 10 seconds
 
   withScenario("Function with Event as byte array", function () {
