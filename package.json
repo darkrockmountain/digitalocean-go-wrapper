@@ -42,7 +42,7 @@
     "chai-as-promised": "^8.0.0",
     "esmock": "^2.6.5",
     "mocha": "^10.4.0",
-    "sinon": "^18.0.0"
+    "sinon": "^19.0.2"
   },
   "bin": {
     "dogo-wrap": "index.mjs"
